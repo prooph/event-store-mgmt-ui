@@ -1,0 +1,19 @@
+version: '2'
+services:
+  nginx:
+    image: 'prooph/nginx:www'
+    volumes:
+      - ./gateway:/etc/nginx/sites-enabled:ro
+      - .:/var/www
+      - ./frontend/dist:/var/www/public/dist
+    ports:
+      - '8111:80'
+  php:
+    image: prooph/php:7.1-fpm
+    volumes:
+      - .:/var/www
+  node:
+    image: node:latest
+    volumes:
+      - ./frontend:/usr/local/app
+    working_dir: /usr/local/app
