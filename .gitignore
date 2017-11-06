@@ -1,7 +1,0 @@
-vendor/*
-.idea
-frontend/node_modules
-frontend/elm-stuff
-frontend/dist/*
-!frontend/dist/assets
-frontend/yarn-error.log
