@@ -1,0 +1,8 @@
+{
+    "app": {
+        "title": "React + Redux + Semantic UI Skeleton",
+        "sidemenu": {
+            "messageFlow": "Message Flow"
+        }
+    }
+}
