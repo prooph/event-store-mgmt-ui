@@ -33,6 +33,7 @@
     "notifyjs": "^3.0.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
+    "react-dropzone": "^4.2.3",
     "react-i18next": "^4.7.0",
     "react-redux": "^5.0.6",
     "react-redux-typescript": "^2.3.0",

@@ -13,14 +13,18 @@ interface StateProps extends InjectedTranslateProps {
 }
 
 interface PropsToDispatch {
-    onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void
+    onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void,
+    onImportMessageFlowFile: (file: File) => void,
 }
 
 interface OwnProps {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
-    return bindActionCreators({onSaveMessageFlow: Command.saveMessageFlow} as any, dispatch);
+    return bindActionCreators({
+        onSaveMessageFlow: Command.saveMessageFlow,
+        onImportMessageFlowFile: Command.importMessageFlowFile,
+    } as any, dispatch);
 };
 
 const CytoscapeContainer = connect<StateProps, PropsToDispatch, OwnProps>(CytoscapSelector.makeMapStateToPropsCytoscape, mapDispatchToProps, undefined, {pure: false})(Cytoscape as any);
