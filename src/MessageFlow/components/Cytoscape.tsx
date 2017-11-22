@@ -2,6 +2,8 @@ import * as React from 'react';
 import * as cytoscape from 'cytoscape';
 import {conf} from '../conf';
 import {gridConf} from "../grid-conf"
+import {MessageFlow} from "../model";
+import { Grid, Menu, Button } from 'semantic-ui-react';
 
 
 let cyStyle = {
@@ -11,12 +13,25 @@ let cyStyle = {
 };
 
 export interface CytoscapeProps {
-    elements: cytoscape.CollectionElements
+    messageFlow: MessageFlow.MessageFlow,
+    onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void
 }
 
 class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     private cy: cytoscape.Core;
     private cyelement: HTMLDivElement;
+
+    constructor(props: CytoscapeProps) {
+        super(props);
+        this.handleSaveMsgFlow = this.handleSaveMsgFlow.bind(this);
+    }
+
+    handleSaveMsgFlow() {
+        const data = this.cy.json();
+        this.props.onSaveMessageFlow(new MessageFlow.MessageFlow({
+            elements: data["elements"] as cytoscape.ElementsDefinition
+        }))
+    }
 
     componentDidMount(){
         conf.container = this.cyelement;
@@ -25,7 +40,8 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         cy["gridGuide"](gridConf);
 
         this.cy = cy;
-        cy.add(this.props.elements);
+        cy.add(this.props.messageFlow.elements().nodes);
+        cy.add(this.props.messageFlow.elements().edges);
     }
 
     shouldComponentUpdate(){
@@ -33,19 +49,29 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     }
 
     componentWillReceiveProps(nextProps: CytoscapeProps){
-        this.cy.add(nextProps.elements);
+        this.cy.add(nextProps.messageFlow.elements().nodes);
+        this.cy.add(nextProps.messageFlow.elements().edges);
     }
 
     componentWillUnmount(){
         this.cy.destroy();
     }
 
-    getCy(){
-        return this.cy;
-    }
+
 
     render(){
-        return <div style={cyStyle} ref={(div) => { this.cyelement = div; }} />
+        return <Grid.Row style={{minHeight: '100%'}}>
+            <Grid.Column width={14}>
+                <div style={cyStyle} ref={(div) => { this.cyelement = div; }} />
+            </Grid.Column>
+            <Grid.Column width={2}>
+                <Menu icon vertical>
+                    <Menu.Item onClick={this.handleSaveMsgFlow} fluid>
+                        <Button icon="save" size="huge" />
+                    </Menu.Item>
+                </Menu>
+            </Grid.Column>
+        </Grid.Row>;
     }
 }
 

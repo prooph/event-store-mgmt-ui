@@ -14,6 +14,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { Route, Switch, Router, Redirect } from 'react-router';
 import MessageFlow from "./MessageFlow";
+import {MessageFlow as MessageFlowModel} from "./MessageFlow/model/MessageFlow"
 import * as $ from 'jquery';
 import * as cytoscape from 'cytoscape';
 import * as gridGuide from 'cytoscape-grid-guide'
@@ -27,6 +28,8 @@ gridGuide(cytoscape, $);
 
 //Load translations with i18next webpack loader to avoid extra web requests
 import * as i18next from 'i18next';
+import {PATH_MESSAGE_FLOW} from "./MessageFlow/reducers/index";
+import {loadMessageFlow, saveMessageFlow} from "./core/localStorage";
 
 const resources = require('i18next-resource-store-loader!./i18n/index.js');
 
@@ -66,13 +69,23 @@ const sagaMiddleware = createSagaMiddleware();
 
 const history = createHashHistory();
 
+const initialState = INITIAL_STATE.set(PATH_MESSAGE_FLOW, loadMessageFlow());
+
+console.log("initial state", initialState.toJSON());
+
 const store = createStore(
     reducer,
-    INITIAL_STATE,
+    initialState,
     composeWithDevTools(
         applyMiddleware(sagaMiddleware) as StoreEnhancer<State>,
     ) as StoreEnhancer<State>,
 );
+
+//Register localStorage sync
+store.subscribe(() => {
+    const messageFlow: MessageFlowModel = store.getState().get(PATH_MESSAGE_FLOW) as MessageFlowModel;
+    saveMessageFlow(messageFlow);
+})
 
 sagaMiddleware.run(rootSaga as any);
 
