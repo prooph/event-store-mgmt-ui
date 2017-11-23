@@ -2,7 +2,8 @@ import * as React from 'react';
 import DropzoneComponent from 'react-dropzone';
 
 export interface DropzoneProps {
-    onDroppedFile: (file: File) => void
+    onDroppedFile: (file: File) => void,
+    onNotSupportedFileTypeDropped: (file: File) => void
 }
 
 interface DropzoneState {
@@ -31,12 +32,15 @@ export class Dropzone extends React.Component<DropzoneProps, DropzoneState> {
         });
     }
 
-    onDrop(files: File[]) {
+    onDrop(files: File[], notSupportedFiles: File[]) {
         this.setState({
             dropzoneActive: false
         });
         const cb = this.props.onDroppedFile;
+        const notSupportedCb = this.props.onNotSupportedFileTypeDropped;
+
         files.forEach(file => cb(file));
+        notSupportedFiles.forEach(file => notSupportedCb(file));
     }
 
     render() {

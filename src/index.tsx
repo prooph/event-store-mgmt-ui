@@ -15,6 +15,7 @@ import { Provider } from 'react-redux';
 import { Route, Switch, Router, Redirect } from 'react-router';
 import MessageFlow from "./MessageFlow";
 import {MessageFlow as MessageFlowModel} from "./MessageFlow/model/MessageFlow"
+import Notifications from "./NotificationSystem/containers/NotificationsContainer";
 import * as $ from 'jquery';
 import * as cytoscape from 'cytoscape';
 import * as gridGuide from 'cytoscape-grid-guide'
@@ -102,6 +103,7 @@ const Main = () => (
 const Root = () => (
     <Layout.Sidebar>
         <Main/>
+        <Notifications/>
     </Layout.Sidebar>
 );
 

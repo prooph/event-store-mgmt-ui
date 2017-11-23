@@ -7,6 +7,7 @@ import { Grid, Menu, Icon } from 'semantic-ui-react';
 import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
+import {NotificationModel} from "../../NotificationSystem/model";
 
 let cyStyle = {
     height: '100%',
@@ -17,7 +18,8 @@ let cyStyle = {
 export interface CytoscapeProps {
     messageFlow: MessageFlow.MessageFlow,
     onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void,
-    onImportMessageFlowFile: (file: File) => void
+    onImportMessageFlowFile: (file: File) => void,
+    onNotSupportedFileTypeDropped: (file: File) => void,
 }
 
 class Cytoscape extends React.Component<CytoscapeProps, undefined>{
@@ -105,7 +107,10 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     render(){
         return <Grid.Row style={{minHeight: '100%'}}>
             <Grid.Column width={14}>
-                <Dropzone onDroppedFile={this.handleDroppedFile} ref={(dz) => this.dropzone = dz}>
+                <Dropzone
+                    onDroppedFile={this.handleDroppedFile}
+                    onNotSupportedFileTypeDropped={this.props.onNotSupportedFileTypeDropped}
+                    ref={(dz) => this.dropzone = dz}>
                     <div style={cyStyle} ref={(div) => { this.cyelement = div; }} />
                 </Dropzone>
             </Grid.Column>

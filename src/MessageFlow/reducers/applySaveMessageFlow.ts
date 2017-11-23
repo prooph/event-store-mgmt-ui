@@ -1,7 +1,6 @@
 import {State} from "../../reducer";
 import {Action} from "redux";
 import {Command} from "../actions";
-import {PATH_MESSAGE_FLOW} from "./index";
 
 function onSaveMessageFlow(state: State, action: Command.SaveMessageFlow): State {
     return action.messageFlow;

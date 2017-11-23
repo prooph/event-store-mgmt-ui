@@ -15,6 +15,7 @@ interface StateProps extends InjectedTranslateProps {
 interface PropsToDispatch {
     onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void,
     onImportMessageFlowFile: (file: File) => void,
+    onNotSupportedFileTypeDropped: (file: File) => void,
 }
 
 interface OwnProps {
@@ -24,6 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     return bindActionCreators({
         onSaveMessageFlow: Command.saveMessageFlow,
         onImportMessageFlowFile: Command.importMessageFlowFile,
+        onNotSupportedFileTypeDropped: Command.notifyAboutNotSupportedFileType
     } as any, dispatch);
 };
 
