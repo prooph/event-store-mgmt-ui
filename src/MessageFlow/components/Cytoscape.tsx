@@ -3,7 +3,7 @@ import * as cytoscape from 'cytoscape';
 import {conf} from '../conf';
 import {gridConf} from "../grid-conf"
 import {MessageFlow} from "../model";
-import { Grid, Menu, Button } from 'semantic-ui-react';
+import { Grid, Menu, Icon } from 'semantic-ui-react';
 import {Dropzone} from './Dropzone';
 
 let cyStyle = {
@@ -21,12 +21,14 @@ export interface CytoscapeProps {
 class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     private cy: cytoscape.Core;
     private cyelement: HTMLDivElement;
+    private dropzone: Dropzone;
 
     constructor(props: CytoscapeProps) {
         super(props);
         this.handleSaveMsgFlow = this.handleSaveMsgFlow.bind(this);
         this.handleDeleteMsgFlow = this.handleDeleteMsgFlow.bind(this);
         this.handleDroppedFile = this.handleDroppedFile.bind(this);
+        this.handleUploadClick = this.handleUploadClick.bind(this);
     }
 
     handleSaveMsgFlow() {
@@ -40,6 +42,10 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.props.onSaveMessageFlow(new MessageFlow.MessageFlow({
             elements: {nodes: [], edges: []}
         }))
+    }
+
+    handleUploadClick() {
+        this.dropzone.setState({dropzoneActive: !this.dropzone.state.dropzoneActive});
     }
 
     handleDroppedFile(file: File): void {
@@ -76,17 +82,23 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     render(){
         return <Grid.Row style={{minHeight: '100%'}}>
             <Grid.Column width={14}>
-                <Dropzone onDroppedFile={this.handleDroppedFile}>
+                <Dropzone onDroppedFile={this.handleDroppedFile} ref={(dz) => this.dropzone = dz}>
                     <div style={cyStyle} ref={(div) => { this.cyelement = div; }} />
                 </Dropzone>
             </Grid.Column>
             <Grid.Column width={2}>
-                <Menu icon vertical>
-                    <Menu.Item onClick={this.handleSaveMsgFlow} fluid>
-                        <Button icon="save" size="huge" />
+                <Menu compact icon='labeled' vertical>
+                    <Menu.Item onClick={this.handleSaveMsgFlow}>
+                        <Icon name="save" />
+                        Save
                     </Menu.Item>
-                    <Menu.Item onClick={this.handleDeleteMsgFlow} fluid>
-                        <Button icon="trash" size="huge" />
+                    <Menu.Item onClick={this.handleUploadClick}>
+                        <Icon name="upload" />
+                        Import
+                    </Menu.Item>
+                    <Menu.Item onClick={this.handleDeleteMsgFlow}>
+                        <Icon name="trash" color="red" />
+                        Delete
                     </Menu.Item>
                 </Menu>
             </Grid.Column>
