@@ -35,21 +35,34 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.handleDeleteMsgFlow = this.handleDeleteMsgFlow.bind(this);
         this.handleDroppedFile = this.handleDroppedFile.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
+        this.handleDownloadClick = this.handleDownloadClick.bind(this);
         this.handleCytoscapeChange = this.handleCytoscapeChange.bind(this);
         this.handleConfirmedDelete = this.handleConfirmedDelete.bind(this);
         this.handleCanceledDelete = this.handleCanceledDelete.bind(this);
     }
 
     handleSaveMsgFlow() {
-        const data = this.cy.json();
+        const elements = this.cy.json()["elements"];
         this.props.onSaveMessageFlow(new MessageFlow.MessageFlow({
-            elements: data["elements"] as cytoscape.ElementsDefinition
+            elements: elements as cytoscape.ElementsDefinition
         }))
         this.saveBtn.setState({shouldSave: false})
     }
 
     handleUploadClick() {
         this.dropzone.setState({dropzoneActive: !this.dropzone.state.dropzoneActive});
+    }
+
+    handleDownloadClick() {
+        const elements = this.cy.json()["elements"];
+        const messageFlow = JSON.stringify(elements);
+        const blob = new Blob([messageFlow], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.download = "message_flow.json";
+        a.href = url;
+        a.click();
     }
 
     handleDroppedFile(file: File): void {
@@ -120,6 +133,10 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
                     <Menu.Item onClick={this.handleUploadClick}>
                         <Icon name="upload" />
                         Import
+                    </Menu.Item>
+                    <Menu.Item onClick={this.handleDownloadClick}>
+                        <Icon name="download" />
+                        Export
                     </Menu.Item>
                     <Menu.Item onClick={this.handleDeleteMsgFlow}>
                         <Icon name="trash" color="red" />
