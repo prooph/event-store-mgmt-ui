@@ -1,33 +1,27 @@
-import {MessageFlow} from "../MessageFlow/model/MessageFlow";
+import {MessageFlow} from "../MessageFlow/model";
 import {ElementsDefinition} from "cytoscape";
 
 const KEY_MESSAGE_FLOW = 'messageflow';
 
-const emptyMessageFlow = (): MessageFlow => {
-    return new MessageFlow({elements: {
-        nodes: [],
-        edges: []
-    }});
-}
 
-export const loadMessageFlow = (): MessageFlow => {
+export const loadMessageFlow = (): MessageFlow.MessageFlow => {
     try {
         const serializedState = localStorage.getItem(KEY_MESSAGE_FLOW);
 
         if(serializedState ===  null) {
-            return emptyMessageFlow();
+            return MessageFlow.emptyMessageFlow();
         }
 
         const messageFlowData: ElementsDefinition = JSON.parse(serializedState);
 
-        return new MessageFlow({elements: messageFlowData});
+        return new MessageFlow.MessageFlow({elements: messageFlowData});
     } catch (err) {
         console.error(err);
-        return emptyMessageFlow();
+        return MessageFlow.emptyMessageFlow();
     }
 }
 
-export const saveMessageFlow = (flow: MessageFlow): void => {
+export const saveMessageFlow = (flow: MessageFlow.MessageFlow): void => {
     try {
         const serializedFlow = JSON.stringify(flow.elements());
         localStorage.setItem(KEY_MESSAGE_FLOW, serializedFlow);

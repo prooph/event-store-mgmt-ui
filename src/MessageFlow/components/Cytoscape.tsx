@@ -7,7 +7,6 @@ import { Grid, Menu, Icon } from 'semantic-ui-react';
 import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
-import {NotificationModel} from "../../NotificationSystem/model";
 
 let cyStyle = {
     height: '100%',
