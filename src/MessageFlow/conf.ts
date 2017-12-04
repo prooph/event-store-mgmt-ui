@@ -1,6 +1,6 @@
 export const conf: any = {
     container: null,
-    layout: {name: 'preset'},
+    layout: {name: 'grid'},
     style: [
         {
             selector: 'node',

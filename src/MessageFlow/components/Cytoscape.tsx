@@ -7,12 +7,91 @@ import { Grid, Menu, Icon } from 'semantic-ui-react';
 import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
+import {CollectionElements, ElementsDefinition, NodeDefinition} from "cytoscape";
+import * as _ from "lodash";
+const cytour = require('cytoscape.js-undo-redo/cytoscape-undo-redo.js');
+
+cytour(cytoscape);
 
 let cyStyle = {
     height: '100%',
     width: '100%',
     display: 'block'
 };
+
+let commandRow = 0;
+let commandHandlerRow = 0;
+let aggregateMethodRow = 0;
+let eventRow = 0;
+let eventListener = 0;
+
+const nodeRowCol = (node) => {
+
+    if(node.hasClass('command')) {
+        if(node.hasClass('message')) {
+            commandRow = commandRow + 1;
+            return {row: commandRow, col: 0};
+        }
+
+        if(node.hasClass('handler')) {
+            commandHandlerRow = commandHandlerRow + 1;
+            return {row: commandHandlerRow, col: 1};
+        }
+
+        if(node.hasClass('producer')) {
+            eventListener = eventListener + 1;
+            return {row: eventListener, col: 4};
+        }
+    }
+
+    if(node.hasClass('event')) {
+        if(node.hasClass('message')) {
+            eventRow = eventRow + 1;
+            return {row: eventRow, col: 3};
+        }
+
+        if(node.hasClass('recorder') || node.hasClass('factory')) {
+            aggregateMethodRow = aggregateMethodRow + 1;
+            return {row: aggregateMethodRow, col: 2};
+        }
+
+        if(node.hasClass('listner')) {
+            eventListener = eventListener + 1;
+            return {row: eventListener, col: 4};
+        }
+    }
+
+    return {};
+};
+
+const positioningLayout = {
+    name: "grid",
+    avoidOverlap: true,
+    avoidOverlapPadding: 20,
+    position: nodeRowCol,
+};
+
+const filterNodesWithoutPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
+    let filteredNodes = [];
+    nodes.forEach(node => {
+        if(_.isUndefined(node.position)) {
+            filteredNodes.push(node);
+        }
+    })
+
+    return filteredNodes;
+}
+
+const filterNodesWithPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
+    let filteredNodes = [];
+    nodes.forEach(node => {
+        if(!_.isUndefined(node.position)) {
+            filteredNodes.push(node);
+        }
+    })
+
+    return filteredNodes;
+}
 
 export interface CytoscapeProps {
     messageFlow: MessageFlow.MessageFlow,
@@ -24,6 +103,7 @@ export interface CytoscapeProps {
 class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     private cy: cytoscape.Core;
     private cyelement: HTMLDivElement;
+    private cytour: any;
     private dropzone: Dropzone;
     private saveBtn: React.PureComponent;
     private confirm: ConfirmWrapper;
@@ -31,6 +111,8 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     constructor(props: CytoscapeProps) {
         super(props);
         this.handleSaveMsgFlow = this.handleSaveMsgFlow.bind(this);
+        this.handleUndoClick = this.handleUndoClick.bind(this);
+        this.handleRedoClick = this.handleRedoClick.bind(this);
         this.handleDeleteMsgFlow = this.handleDeleteMsgFlow.bind(this);
         this.handleDroppedFile = this.handleDroppedFile.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
@@ -46,6 +128,14 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
             elements: elements as cytoscape.ElementsDefinition
         }))
         this.saveBtn.setState({shouldSave: false})
+    }
+
+    handleUndoClick() {
+        this.cytour.undo();
+    }
+
+    handleRedoClick() {
+        this.cytour.redo();
     }
 
     handleUploadClick() {
@@ -89,7 +179,10 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
 
     componentDidMount(){
         conf.container = this.cyelement;
-        let cy = cytoscape(conf);
+
+        let cy = cytoscape(conf) as any;
+
+        this.cytour = cy.undoRedo();
 
         cy["gridGuide"](gridConf);
 
@@ -108,7 +201,24 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
 
     componentWillReceiveProps(nextProps: CytoscapeProps){
         this.cy.remove('*');
-        this.cy.add(nextProps.messageFlow.elements().nodes);
+
+        const nodesWithPosition = filterNodesWithPosition(nextProps.messageFlow.elements().nodes);
+        const nodesWithoutPosition = filterNodesWithoutPosition(nextProps.messageFlow.elements().nodes);
+
+        this.cy.add(nodesWithPosition);
+
+        const eles: CollectionElements = this.cy.add(nodesWithoutPosition);
+
+        //Reset global vars
+        commandRow = 0;
+        commandHandlerRow = 0;
+        aggregateMethodRow = 0;
+        eventRow = 0;
+        eventListener = 0;
+
+        const layout = eles.layout(positioningLayout) as any;
+        layout.run();
+
         this.cy.add(nextProps.messageFlow.elements().edges);
     }
 
@@ -129,6 +239,14 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
             <Grid.Column width={2}>
                 <Menu compact icon='labeled' vertical>
                     <MenuSaveBtn onSaveClick={this.handleSaveMsgFlow} ref={(btn) => this.saveBtn = btn} />
+                    <Menu.Item onClick={this.handleUndoClick}>
+                        <Icon name="undo" />
+                        Undo
+                    </Menu.Item>
+                    <Menu.Item onClick={this.handleRedoClick}>
+                        <Icon name="repeat" />
+                        Redo
+                    </Menu.Item>
                     <Menu.Item onClick={this.handleUploadClick}>
                         <Icon name="upload" />
                         Import

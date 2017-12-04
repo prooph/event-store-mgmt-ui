@@ -22,6 +22,7 @@
     "axios": "^0.16.2",
     "cytoscape": "^3.2.5",
     "cytoscape-grid-guide": "^2.0.5",
+    "cytoscape.js-undo-redo": "^1.0.1",
     "gulp": "^3.9.1",
     "gulp-cli": "^1.4.0",
     "history": "^4.7.2",

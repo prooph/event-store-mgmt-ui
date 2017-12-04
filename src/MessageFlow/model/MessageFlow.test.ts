@@ -1,12 +1,20 @@
 import {emptyMessageFlow, mergeElements} from "./MessageFlow";
-import {EdgeDefinition, NodeDefinition} from "cytoscape";
+import {EdgeDefinition, NodeDataDefinition, NodeDefinition} from "cytoscape";
+
+interface TestNodeDataDefinition extends NodeDataDefinition {
+    text: string
+}
+
+interface TestNodeDefinition extends NodeDefinition {
+    data: TestNodeDataDefinition
+}
 
 test("Empty message flow", () => {
     expect(emptyMessageFlow().elements()).toEqual({nodes: [], edges: []});
 })
 
 describe("Merge elements", () => {
-    const makeNode = (id: string, text?: string): NodeDefinition => {
+    const makeNode = (id: string, text?: string): TestNodeDefinition => {
         return {
             data: {id: id, text: text || ""}
         }

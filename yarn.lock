@@ -1471,6 +1471,10 @@ cytoscape-grid-guide@^2.0.5:
   dependencies:
     functional-red-black-tree "^1.0.1"
 
+cytoscape.js-undo-redo@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/cytoscape.js-undo-redo/-/cytoscape.js-undo-redo-1.0.1.tgz#b0d0380b5791b4665dc1a7e663074851e9aad225"
+
 cytoscape@^3.2.5:
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.2.5.tgz#cd50ab9fcd6a12e51d2e8e5a13f1e5aeb2cd84c8"
