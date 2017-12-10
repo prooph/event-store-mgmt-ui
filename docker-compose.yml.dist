@@ -1,0 +1,22 @@
+version: '2'
+services:
+  yarn:
+    image: sandrokeil/typescript
+    ports:
+      - 3000:3000
+      - 4000:4000
+    env_file:
+      - app.env.dist
+    volumes:
+      - .:/app
+    command: yarn start
+# Join external docker network, example joins default event-store-http-api network
+# This allows you to connect to the API of another network and configure webpack dev server to act as a proxy
+# See devSrvProxy.json.dist for example proxy config
+    networks:
+      - default
+      - eventstorehttpapi_default
+
+networks:
+  eventstorehttpapi_default:
+    external: true

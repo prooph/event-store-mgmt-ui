@@ -26,3 +26,6 @@ app.env
 vendor
 
 src/theme/semantic/
+
+devSrvProxy.json
+docker-compose.yml
