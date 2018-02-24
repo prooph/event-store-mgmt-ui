@@ -1,3 +1,20 @@
 /*******************************
     User Variable Overrides
 *******************************/
+
+
+.ui.card > .content {
+    border-top:none;
+}
+
+.ui.cards > .card > .content > .segmentChoice,
+.ui.card > .content > .segmentChoice {
+    border-bottom: 1px solid @borderColor;
+    font-size: @relativeLarge;
+    font-weight: bold;
+}
+
+.ui.cards > .card > .content > .segmentChoice,
+.ui.card > .content > .segmentChoice > .active {
+    border-bottom: 2px solid @primaryColor;
+}

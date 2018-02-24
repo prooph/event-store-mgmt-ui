@@ -2,7 +2,23 @@
     "app": {
         "title": "React + Redux + Semantic UI Skeleton",
         "sidemenu": {
+            "eventStore": "Event Store",
             "messageFlow": "Message Flow"
+        },
+        "loading": "Daten werden geladen ...",
+        "eventStore": {
+            "h1": "Event Store",
+            "streams": {
+                "empty": "Der Steam is leer",
+                "end": "Keine älteren Events vorhanden",
+                "title": "Streams",
+                "no_stream_selected": "Wähle einen Stream aus der Liste rechts, um Events des Streams zu sehen."
+            },
+            "event": {
+                "uuid": "Uuid",
+                "payload": "Payload",
+                "metadata": "Metadaten"
+            }
         }
     }
 }

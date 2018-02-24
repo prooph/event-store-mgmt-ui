@@ -2,7 +2,23 @@
     "app": {
         "title": "React + Redux + Semantic UI Skeleton",
         "sidemenu": {
+            "eventStore": "Event Store",
             "messageFlow": "Message Flow"
+        },
+        "loading": "Loading ...",
+        "eventStore": {
+            "h1": "Event Store",
+            "streams": {
+                "empty": "Stream is empty",
+                "end": "No older events available",
+                "title": "Streams",
+                "no_stream_selected": "Chose a stream from the right side to see events of the stream."
+            },
+            "event": {
+                "uuid": "Uuid",
+                "payload": "Payload",
+                "metadata": "Metadata"
+            }
         }
     }
 }

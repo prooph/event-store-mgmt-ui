@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as Layout from './Layout';
 import * as Routes from './routes';
+import { Segment, Menu, Icon } from 'semantic-ui-react';
 import createSagaMiddleware from 'redux-saga';
 import notify from './notify';
 import reducer, { State, INITIAL_STATE } from './reducer';
@@ -13,9 +14,13 @@ import { createStore, applyMiddleware, StoreEnhancer } from 'redux';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { Route, Switch, Router, Redirect } from 'react-router';
+import { withRouteOnEnter } from './router';
 import MessageFlow from "./MessageFlow";
 import {MessageFlow as MessageFlowModel} from "./MessageFlow/model/MessageFlow"
 import Notifications from "./NotificationSystem/containers/NotificationsContainer";
+import EventStore, {withHttpApi} from "./EventStore";
+import {Actions as EventStoreActions} from "./EventStore/index";
+import {EventStoreHttpApi} from "./EventStore/index";
 import * as $ from 'jquery';
 import * as cytoscape from 'cytoscape';
 import * as gridGuide from 'cytoscape-grid-guide'
@@ -90,21 +95,33 @@ store.subscribe(() => {
 
 sagaMiddleware.run(rootSaga as any);
 
+const httpApi = new EventStoreHttpApi('/api/v1');
+
+store.dispatch(EventStoreActions.Query.getInitialStreamList(httpApi));
+
 // The Main component renders one of provided
 // Routes (provided that one matches).
 const Main = () => (
     <Switch>
         <Redirect exact path={Routes.rootPath} to={Routes.overviewPath}/>
         <Route exact path={Routes.overviewPath} component={Overview}/>
+        <Route path={Routes.eventStorePath.route} component={withRouteOnEnter(props => {
+          const streamName = props.match.params.streamName || null;
+
+          if(streamName) {
+            store.dispatch(EventStoreActions.Query.getLatestStreamEvents(httpApi, streamName));
+          }
+        })(withHttpApi(httpApi)(EventStore))}/>
         <Route exact path={Routes.messageFlowPath} component={MessageFlow}/>
     </Switch>
 );
 
 const Root = () => (
-    <Layout.Sidebar>
+    <Segment>
+        <Layout.TopMenu />
         <Main/>
         <Notifications/>
-    </Layout.Sidebar>
+    </Segment>
 );
 
 ReactDOM.render(

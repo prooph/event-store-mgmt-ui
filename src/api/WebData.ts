@@ -2,6 +2,7 @@ import {call, put} from "redux-saga/effects";
 import {AxiosPromise, AxiosRequestConfig} from 'axios';
 import {Action} from "redux";
 import configuredAxios from "./ConfiguredAxios";
+import {Action as Notify} from "../NotificationSystem"
 
 export const AT_SEND_HTTP_REQUEST = 'AT_SEND_HTTP_REQUEST';
 export const AT_RESET_WEB_DATA = 'AT_RESET_WEB_DATA';
@@ -73,7 +74,10 @@ export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<TMeta> ) {
 
     }
 
-    yield put( responseAction( action.responseAction, { type: "error", msg: "[" + code + "] " + msg }, action.metadata ) );
+    const errMsg = "[" + code + "] " + msg;
+
+    yield put(Notify.Command.error("Webdata error", errMsg));
+    yield put( responseAction( action.responseAction, { type: "error", msg: errMsg}, action.metadata ) );
   }
 }
 

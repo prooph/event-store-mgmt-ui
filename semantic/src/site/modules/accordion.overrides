@@ -1,3 +1,12 @@
 /*******************************
         User Overrides
 *******************************/
+
+.ui.styled.accordion {
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.ui.styled.accordion .active.title {
+  border-bottom: 3px solid @primaryColor;
+}
