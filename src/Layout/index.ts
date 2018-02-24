@@ -1,5 +1,5 @@
 
-import TopMenu from './TopMenu';
+import TopMenu from './Container/TopMenuContainer';
 
 export {
     TopMenu

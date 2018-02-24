@@ -11,7 +11,8 @@ import {InjectedTranslateProps} from "react-i18next";
 export interface StreamNavProps extends InjectedTranslateProps {
     baseUrl: string,
     streams: List<Stream.Stream>,
-    activeStream: Stream.StreamName | null
+    activeStream: Stream.StreamName | null,
+    onStreamSelected: (streamName: Stream.StreamName) => void
 }
 
 export const StreamNav = pure( (props: StreamNavProps) => {
@@ -24,7 +25,9 @@ export const StreamNav = pure( (props: StreamNavProps) => {
                 as={NavLink}
                 to={props.baseUrl + "/" + encodeURIComponent(stream.name())}
                 active={stream.name() === props.activeStream}
-                key={stream.name()}>
+                key={stream.name()}
+                onClick={() => props.onStreamSelected(stream.name())}
+                >
                 {stream.name()}
             </MenuItem>
         );

@@ -16,6 +16,7 @@ export interface StreamsLayoutProps extends RouteComponentProps<{streamName?: St
     streams: List<Stream.Stream>,
     onGetOlderEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, event: Event.DomainEvent) => void,
     onGetLatestEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName) => void,
+    onStreamSelected: (streamName: Stream.StreamName) => void,
 }
 
 const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName): Stream.Stream => {
@@ -87,6 +88,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                                 streams={this.props.streams}
                                 t={this.props.t}
                                 activeStream={this.props.match.params.streamName || null }
+                                onStreamSelected={this.props.onStreamSelected}
                             />
                         </Sticky>
                     </Rail>

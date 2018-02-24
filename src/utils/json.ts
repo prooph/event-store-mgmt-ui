@@ -9,12 +9,12 @@ export const jsonTreeTheme = {
     base05: '#f8f8f2',
     base06: '#f5f4f1',
     base07: '#f9f8f5',
-    base08: '#f92672',
-    base09: '#fd971f',
-    base0A: '#f4bf75',
-    base0B: '#a6e22e',
+    base08: '#CF3241',
+    base09: '#ED6842',
+    base0A: '#EECA51',
+    base0B: '#1F8A6D',
     base0C: '#a1efe4',
-    base0D: '#2185D0',
-    base0E: '#ae81ff',
+    base0D: '#15A2B0',
+    base0E: '#715671',
     base0F: '#cc6633'
 };
