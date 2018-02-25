@@ -105,13 +105,7 @@ const Main = () => (
     <Switch>
         <Redirect exact path={Routes.rootPath} to={Routes.overviewPath}/>
         <Route exact path={Routes.overviewPath} component={Overview}/>
-        <Route path={Routes.eventStorePath.route} component={withRouteOnEnter(props => {
-          const streamName = props.match.params.streamName || null;
-
-          if(streamName) {
-            store.dispatch(EventStoreActions.Query.getLatestStreamEvents(httpApi, streamName));
-          }
-        })(withHttpApi(httpApi)(EventStore))}/>
+        <Route path={Routes.eventStorePath.route} component={withHttpApi(httpApi)(EventStore)}/>
         <Route exact path={Routes.messageFlowPath} component={MessageFlow}/>
     </Switch>
 );

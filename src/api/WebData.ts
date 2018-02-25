@@ -2,15 +2,16 @@ import {call, put} from "redux-saga/effects";
 import {AxiosPromise, AxiosRequestConfig} from 'axios';
 import {Action} from "redux";
 import configuredAxios from "./ConfiguredAxios";
-import {Action as Notify} from "../NotificationSystem"
+import {Action as Notify} from "../NotificationSystem";
+import * as _ from 'lodash';
 
 export const AT_SEND_HTTP_REQUEST = 'AT_SEND_HTTP_REQUEST';
 export const AT_RESET_WEB_DATA = 'AT_RESET_WEB_DATA';
 
-export interface WEB_DATA_NOT_ASKED {type: "notAsked", data?: undefined, msg?: undefined}
-export interface WEB_DATA_LOADING {type: "loading", data?: undefined, msg?: undefined}
-export interface WEB_DATA_FAILURE {type: "error", data?: undefined, msg: string}
-export interface WEB_DATA_SUCCESS<D> {type: "success", data: D, msg?: undefined}
+export interface WEB_DATA_NOT_ASKED {type: "notAsked", data?: undefined, msg?: undefined, errorCode?: undefined}
+export interface WEB_DATA_LOADING {type: "loading", data?: undefined, msg?: undefined, errorCode?: undefined}
+export interface WEB_DATA_FAILURE {type: "error", data?: undefined, msg: string, errorCode: number}
+export interface WEB_DATA_SUCCESS<D> {type: "success", data: D, msg?: undefined, errorCode?: undefined}
 
 export type WebData<D> = WEB_DATA_NOT_ASKED | WEB_DATA_LOADING | WEB_DATA_FAILURE | WEB_DATA_SUCCESS<D>;
 
@@ -52,8 +53,12 @@ export function responseAction<D, TMeta> ( type: string, webData: WebData<D>, me
   }
 }
 
+export interface ErrorCodeWhitelist {
+  errorCodeWhitelist?: number[]
+}
+
 // noinspection TypeScriptValidateTypes
-export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<TMeta> ) {
+export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<ErrorCodeWhitelist & TMeta> ) {
 
   yield put( responseAction( action.responseAction, { type: "loading" }, action.metadata ) );
 
@@ -76,8 +81,11 @@ export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<TMeta> ) {
 
     const errMsg = "[" + code + "] " + msg;
 
-    yield put(Notify.Command.error("Webdata error", errMsg));
-    yield put( responseAction( action.responseAction, { type: "error", msg: errMsg}, action.metadata ) );
+    if(!action.metadata || !action.metadata.errorCodeWhitelist || !_.includes(action.metadata.errorCodeWhitelist, code)) {
+        yield put(Notify.Command.error("Webdata error", errMsg));
+    }
+
+    yield put( responseAction( action.responseAction, { type: "error", msg: errMsg, errorCode: code}, action.metadata ) );
   }
 }
 

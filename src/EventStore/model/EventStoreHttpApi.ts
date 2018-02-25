@@ -1,6 +1,38 @@
 import {DomainEvent, DomainEventType} from './DomainEvent';
-import {fromJS, List, Record} from "immutable";
+import {StreamName} from "./Stream";
+import * as Filter from "./StreamFilter";
+import {List, Record} from "immutable";
 import * as _ from 'lodash';
+
+const typeToQueryKey = (type: Filter.FilterType): string => type === 'metadata'? 'meta' : type;
+
+const translateProperty = (property: Filter.FilterProperty) => {
+    if(property === Filter.PREFIX_EVENT + '.uuid') {
+        return 'event_id';
+    }
+
+    if(property === Filter.PREFIX_EVENT + '.message_name') {
+        return 'event_name';
+    }
+
+    return property;
+}
+
+const rmPropertyPrefix = (property: Filter.FilterProperty): Filter.FilterProperty => {
+    return property.replace(/^(event\.)|(meta\.)/, '');
+}
+
+const filterToQueryPart = (filter: Filter.StreamFilter, index: number): string => {
+    const queryKey = `${typeToQueryKey(filter.type())}_${index}`;
+    const property = encodeURIComponent(rmPropertyPrefix(translateProperty(filter.property())))
+    const operator = encodeURIComponent(filter.operator());
+    const value = encodeURIComponent(filter.value());
+    return `${queryKey}_field=${property}&${queryKey}_operator=${operator}&${queryKey}_value=${value}`;
+}
+
+const filtersToQueryString = (filters: List<Filter.StreamFilter>): string => {
+    return filters.map(filterToQueryPart).join('&');
+}
 
 export class EventStoreHttpApi {
     baseUrl: string;
@@ -12,16 +44,26 @@ export class EventStoreHttpApi {
         return this.baseUrl + '/streams';
     }
 
-    getLatestStreamEvents(streamName: string, limit: number): string {
+    getLatestStreamEvents(streamName: StreamName, limit: number): string {
         return this.baseUrl + `/stream/${streamName}/head/backward/${limit}`;
     }
 
-    getOlderEvents(streamName: string, event: DomainEvent, limit: number): string {
-        return this.baseUrl + `/stream/${streamName}/${event.streamPosition() - 1}/backward/${limit}`;
+    getOlderEvents(streamName: StreamName, event: DomainEvent, filters: List<Filter.StreamFilter>, limit: number): string {
+        let url = this.baseUrl + `/stream/${streamName}/${event.streamPosition() - 1}/backward/${limit}`;
+
+        if(filters.count()) {
+            url = url + '?' + filtersToQueryString(filters);
+        }
+
+        return url;
     }
 
-    getNewerEvents(streamName: string, event: DomainEvent, limit: number): string {
+    getNewerEvents(streamName: StreamName, event: DomainEvent, limit: number): string {
         return this.baseUrl + `/stream/${streamName}/${event.streamPosition()}/forward/$W{limit}`;
+    }
+
+    getFilteredEvents(streamName: StreamName, filters: List<Filter.StreamFilter>, limit: number): string {
+        return this.getLatestStreamEvents(streamName, limit) + '?' + filtersToQueryString(filters);
     }
 }
 

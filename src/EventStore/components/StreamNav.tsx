@@ -36,7 +36,7 @@ export const StreamNav = pure( (props: StreamNavProps) => {
     return (
         <div>
             <h2>{ props.t('app.eventStore.streams.title') }</h2>
-            <Menu fluid vertical pointing secondary>
+            <Menu fluid vertical pointing secondary className='event_store'>
                 {navLinks}
             </Menu>
         </div>

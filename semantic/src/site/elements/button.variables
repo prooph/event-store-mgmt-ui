@@ -1,3 +1,20 @@
 /*******************************
     User Variable Overrides
 *******************************/
+
+/* Basic */
+@basicBorderRadius: @borderRadius;
+@basicBorderSize: 0px;
+@basicTextColor: @textColor;
+@basicColoredBorderSize: 1px;
+
+@basicBackground: transparent none;
+@basicFontWeight: normal;
+@basicBorder: 0px solid @borderColor;
+@basicBoxShadow: 0px 0px 0px @basicBorderSize @borderColor inset;
+@basicLoadingColor: @offWhite;
+@basicTextTransform: none;
+
+/* Basic Hover */
+@basicHoverBackground: #FFFFFF;
+@basicHoverTextColor: @orange;

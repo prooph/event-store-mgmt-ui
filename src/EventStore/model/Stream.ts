@@ -1,25 +1,37 @@
 import {fromJS, List, Record} from "immutable";
 import {DomainEvent} from "./DomainEvent";
+import {StreamFilter} from "./StreamFilter";
+import * as _ from 'lodash';
+import {Query} from '../actions';
 
 export type StreamName = string;
 
 export interface StreamType {
     streamName: StreamName,
     loading?: boolean,
-    events?: List<DomainEvent>
+    events?: List<DomainEvent>,
+    filters?: List<StreamFilter>,
+    lastErrorCode?: number | null,
+    showFilterBox?: boolean,
 }
 
 export class Stream extends Record({
     streamName: 'unknown',
     loading: false,
-    events: fromJS([])
+    events: fromJS([]),
+    filters: fromJS([]),
+    lastErrorCode: null,
+    showFilterBox: false,
 }) {
     constructor(data: StreamType) {
         super(data);
 
         this.name = this.name.bind(this);
         this.isLoading = this.isLoading.bind(this);
+        this.lastErrorCode = this.lastErrorCode.bind(this);
+        this.showFilterBox = this.showFilterBox.bind(this);
         this.events =  this.events.bind(this);
+        this.filters = this.filters.bind(this);
     }
 
     name(): StreamName {
@@ -30,8 +42,36 @@ export class Stream extends Record({
         return this.get('loading')
     }
 
+    lastErrorCode(): number | null {
+        return this.get('lastErrorCode');
+    }
+
+    showFilterBox(): boolean {
+        return this.get('showFilterBox');
+    }
+
     events(): List<DomainEvent> {
         return this.get('events')
+    }
+
+    canHaveOlderEvents(): boolean {
+        if(this.lastErrorCode() && _.includes(Query.EmptyStreamErrorCodes, this.lastErrorCode())) {
+            return false;
+        }
+
+        return this.events().count() > 0 && this.events().last().streamPosition() > 1;
+    }
+
+    filters(): List<StreamFilter> {
+        return this.get('filters')
+    }
+
+    replaceFilters(filters: List<StreamFilter>): Stream {
+        return this.set('filters', filters) as Stream;
+    }
+
+    replaceEvents(events: List<DomainEvent>): Stream {
+        return this.set("events", events) as Stream;
     }
 
     mergeEvents(events: List<DomainEvent>): Stream {

@@ -18,6 +18,13 @@
                 "uuid": "Uuid",
                 "payload": "Payload",
                 "metadata": "Metadaten"
+            },
+            "filter": {
+                "property": "Property oder Metadata",
+                "operator": "=",
+                "value": "Filterwert",
+                "apply": "Anwenden",
+                "clear": "Filter aufheben"
             }
         }
     }

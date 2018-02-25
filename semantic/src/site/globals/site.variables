@@ -23,3 +23,13 @@
 
 @primaryColor        : @blue;
 @secondaryColor      : @purple;
+
+/*-------------------
+    Focused Input
+--------------------*/
+
+/* Used on inputs, textarea etc */
+@focusedFormBorderColor: @orange;
+
+/* Used on dropdowns, other larger blocks */
+@focusedFormMutedBorderColor: @orange;

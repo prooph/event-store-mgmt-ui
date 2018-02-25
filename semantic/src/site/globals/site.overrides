@@ -6,3 +6,30 @@ ul.ui.pagination.secondary.pointing.menu > li.active {
     background: none;
     border-bottom: 3px solid @primaryColor;
 }
+
+i.filter {
+    cursor: pointer;
+}
+
+i.filter.event_store.active,
+i.filter.event_store:hover,
+i.refresh.event_store:hover,
+i.refresh.event_store.active {
+    color: @orange;
+}
+
+.ui.divider.event_store:not(.vertical):not(.horizontal) {
+    border-top: 1px solid @orange;
+    border-bottom: 1px solid @orange;
+}
+
+.ui.secondary.vertical.pointing.menu.event_store .active.item {
+    border-color: @orange;
+}
+
+.ui.basic.segment.filterbox,
+.ui.basic.segment.filterbox .ui.basic.button:hover,
+.ui.basic.segment.filterbox .ui.basic.button:active,
+.ui.basic.segment.filterbox .ui.basic.button:focus {
+    background-color: @darkWhite !important;
+}

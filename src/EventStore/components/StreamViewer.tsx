@@ -1,19 +1,27 @@
 import * as React from 'react';
 import {InjectedTranslateProps} from "react-i18next";
 import {RouteComponentProps} from "react-router";
-import {Stream} from "../model";
-import {Header, Card, Message, List, Dimmer, Accordion, Loader, Icon} from "semantic-ui-react";
+import {Stream, Filter} from "../model";
+import {Header, Card, Message, Accordion, Icon, Segment, Divider, Button} from "semantic-ui-react";
 import Event from "./Event";
+import {StreamFilterBox} from "./StreamFilterBox";
+import {fromJS, List} from "immutable";
 
 export interface StreamViewerProps extends InjectedTranslateProps {
     stream: Stream.Stream,
-    onRefresh: (streamName: Stream.StreamName) => void,
-    style?: any
+    style?: any,
+    onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
+    onRefresh: (stream: Stream.Stream) => void,
+    onFilterSubmit: (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void
 }
 
 export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
 
-    handleOnRefresh = () => this.props.onRefresh(this.props.stream.name())
+    handleOnRefresh = () => this.props.onRefresh(this.props.stream)
+
+    handleFilterSubmit = (filters: List<Filter.StreamFilter>) => this.props.onFilterSubmit(this.props.stream.name(), filters)
+
+    handleShowFilterBoxClick = () => this.props.onShowFilterBox(this.props.stream.name(), !this.props.stream.showFilterBox())
 
     render() {
         let panels = [];
@@ -29,16 +37,36 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
 
         return (
             <div style={this.props.style}>
-                <Header as="h1" textAlign="center">{ this.props.t('app.eventStore.h1') + " / " + this.props.stream.name() }<Header sub={true} floated='right'>
-                    <Icon
-                        size='tiny'
-                        name='refresh'
-                        style={{cursor: 'pointer'}}
-                        color={this.props.stream.isLoading()? 'orange':'black'}
-                        loading={this.props.stream.isLoading()}
-                        onClick={this.handleOnRefresh}
-                    />
-                </Header></Header>
+                <Header as="h1" textAlign="center">
+                    <Header sub={true} floated={'left'}>
+                        <Icon
+                            name='filter'
+                            className='event_store'
+                            size='large'
+                            color={this.props.stream.showFilterBox() || this.props.stream.filters().count() > 0? 'orange' : null}
+                            onClick={this.handleShowFilterBoxClick} />
+                    </Header>
+                    { this.props.t('app.eventStore.h1') + " / " + this.props.stream.name() }
+                    <Header sub={true} floated='right'>
+                        <Icon
+                            size='large'
+                            name='refresh'
+                            style={{cursor: 'pointer'}}
+                            color={this.props.stream.isLoading()? 'orange':null}
+                            loading={this.props.stream.isLoading()}
+                            onClick={this.handleOnRefresh}
+                            className='event_store'
+                        />
+                    </Header>
+                </Header>
+                <Divider className='event_store' />
+                {this.props.stream.showFilterBox() && <Segment basic>
+                    <StreamFilterBox
+                        filters={this.props.stream.filters()}
+                        onFilterSubmit={this.handleFilterSubmit}
+                        onClearFilter={() => this.props.onFilterSubmit(this.props.stream.name(), fromJS([]))}
+                        t={this.props.t} />
+                </Segment>}
                 <Card fluid={true}>
                     {panels.length === 0 &&
                     <Message warning={true}>{this.props.t('app.eventStore.streams.empty')}</Message>

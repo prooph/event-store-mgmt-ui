@@ -3,10 +3,8 @@ import {Grid, Segment, Sticky, Rail, Visibility, Message} from 'semantic-ui-reac
 import {InjectedTranslateProps} from "react-i18next";
 import {Route, RouteComponentProps, Switch} from "react-router";
 import {List} from "immutable";
-import {Stream, Event, EventStore} from "../model";
+import {Stream, Event, EventStore, Filter} from "../model";
 import {StreamNav} from "./StreamNav";
-import * as Routes from '../../routes';
-import {render} from "react-dom";
 import {NoStreamSelected} from "./NoStreamSelected";
 import {StreamViewer} from "./StreamViewer";
 
@@ -14,8 +12,10 @@ export interface StreamsLayoutProps extends RouteComponentProps<{streamName?: St
     baseUrl: string,
     httpApi: EventStore.EventStoreHttpApi,
     streams: List<Stream.Stream>,
-    onGetOlderEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, event: Event.DomainEvent) => void,
+    onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
+    onGetOlderEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, event: Event.DomainEvent, filters: List<Filter.StreamFilter>) => void,
     onGetLatestEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName) => void,
+    onGetFilteredEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onStreamSelected: (streamName: Stream.StreamName) => void,
 }
 
@@ -28,32 +28,45 @@ const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName):
 export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextRef: any, endOfStream: boolean}> {
     state = {contextRef: undefined, endOfStream: false}
 
+    componentDidMount() {
+        const streamName = this.props.match.params.streamName || null;
+
+        if(streamName) {
+            const stream = getStream(this.props.streams, streamName);
+
+            if(stream.filters().count()) {
+                this.props.onGetFilteredEvents(this.props.httpApi, stream.name(), stream.filters());
+            } else {
+                this.props.onGetLatestEvents(this.props.httpApi, stream.name());
+            }
+        }
+    }
+
     handleContextRef = contextRef => {
         this.setState({ contextRef })
     }
 
     handleBottomVisible = () => {
-        if(this.state.endOfStream) {
-            return;
-        }
-
         const {streamName} = this.props.match.params;
         const stream = getStream(this.props.streams, streamName);
 
-        if(stream.events().count()) {
-            const lastEvent = stream.events().last();
-
-            if(lastEvent.streamPosition() > 1) {
-                this.props.onGetOlderEvents(this.props.httpApi, streamName, stream.events().last())
-            } else {
-                this.setState({endOfStream: true})
-            }
+        if(stream.canHaveOlderEvents()) {
+            this.props.onGetOlderEvents(this.props.httpApi, streamName, stream.events().last(), stream.filters())
+        } else {
+            this.setState({endOfStream: true})
         }
     }
 
-    handleOnRefresh = (streamName: Stream.StreamName) => {
-        console.log("get latest events");
-        this.props.onGetLatestEvents(this.props.httpApi, streamName);
+    handleOnRefresh = (stream: Stream.Stream) => {
+        if(stream.filters().count()) {
+            this.props.onGetFilteredEvents(this.props.httpApi, stream.name(), stream.filters());
+        } else {
+            this.props.onGetLatestEvents(this.props.httpApi, stream.name());
+        }
+    }
+
+    handleFilterSubmit = (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => {
+        this.props.onGetFilteredEvents(this.props.httpApi, streamName, filters);
     }
 
     render() {
@@ -66,7 +79,9 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 t={this.props.t}
                 stream={getStream(this.props.streams, streamName)}
                 style={{minHeight: window.innerHeight}}
+                onShowFilterBox={this.props.onShowFilterBox}
                 onRefresh={this.handleOnRefresh}
+                onFilterSubmit={this.handleFilterSubmit}
             />
             :
             <NoStreamSelected t={this.props.t}/>;

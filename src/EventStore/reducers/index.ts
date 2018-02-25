@@ -3,6 +3,8 @@ import {Action} from "redux";
 import {Query, Cmd} from "../actions";
 import applyStreamListChanges from "./applyStreamListChanges";
 import applyStreamEvents from "./applyStreamEvents";
+import applyFilteredStreamEvents from "./applyFilteredStreamEvents";
+import applyShowFilterBox from "./applyShowFilterBox";
 import {Stream} from "../model";
 
 const initialState = fromJS({
@@ -29,8 +31,12 @@ export default (state = initialState, action: Action) => {
         case Query.GET_LATEST_STREAM_EVENTS:
         case Query.GET_OLDER_STREAM_EVENTS:
             return state.set("streamList", applyStreamEvents(state.get("streamList", initialState.get("streamList")), action));
+        case Query.GET_FILTERED_STREAM_EVENTS:
+            return state.set("streamList", applyFilteredStreamEvents(state.get("streamList", initialState.get("streamList")), action));
         case Cmd.SET_SELECTED_STREAM:
             return state.set("selectedStream", getSelectedStream(<Cmd.SetSelectedStream>action));
+        case Cmd.SHOW_FILTER_BOX:
+            return state.set("streamList", applyShowFilterBox(state.get("streamList", initialState.get("streamList")), action));
         default:
             return state;
     }

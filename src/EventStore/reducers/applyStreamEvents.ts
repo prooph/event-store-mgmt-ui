@@ -8,19 +8,21 @@ const mapStreamResponseData = (response: EventStore.StreamResponseType ): EventS
     return new EventStore.StreamResponse(response);
 }
 
-const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName): Stream.Stream => {
+export const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName): Stream.Stream => {
     const stream = streams.find(stream => stream.name() === streamName)
 
     return stream || new Stream.Stream({streamName})
 }
 
-const replaceStream = (streams: List<Stream.Stream>, stream: Stream.Stream): List<Stream.Stream> => {
+export const replaceStream = (streams: List<Stream.Stream>, stream: Stream.Stream): List<Stream.Stream> => {
     const index = streams.findIndex(lStream => lStream.name() === stream.name());
 
     return streams.set(index, stream) as List<Stream.Stream>;
 }
 
-function onGetStreamEvents(state: State, action: Query.GetLatestStreamEvents | Query.GetOlderStreamEvents): State {
+type GetStreamEvents = Query.GetLatestStreamEvents | Query.GetFilteredStreamEvents | Query.GetOlderStreamEvents;
+
+export function onGetStreamEvents(state: State, action: GetStreamEvents, mergeEvents?: boolean): State {
     const streams: List<Stream.Stream> = state.get("streams") as List<Stream.Stream>;
     const stream: Stream.Stream = getStream(streams, action.metadata.streamName);
 
@@ -30,13 +32,34 @@ function onGetStreamEvents(state: State, action: Query.GetLatestStreamEvents | Q
 
     if (action.webData.type === "success") {
         const response = mapStreamResponseData(action.webData.data);
-        const mergedStream = stream.mergeEvents(response.events());
 
-        return state.set('streams', replaceStream(streams, mergedStream.set("loading", false) as Stream.Stream))
+        if(typeof mergeEvents === 'undefined') {
+            mergeEvents = true;
+        }
+
+        let mergedStream;
+
+        if(mergeEvents) {
+            mergedStream = stream.mergeEvents(response.events());
+        } else {
+            mergedStream = stream.replaceEvents(response.events());
+        }
+
+        return state.set(
+            'streams',
+            replaceStream(streams, mergedStream.set("loading", false).set('lastErrorCode', null) as Stream.Stream
+            )
+        )
     }
 
     if (action.webData.type === "error") {
-        return state.set('streams', replaceStream(streams, stream.set("loading", false) as Stream.Stream));
+        return state.set(
+            'streams',
+            replaceStream(
+                streams,
+                stream.set("loading", false).set('lastErrorCode', action.webData.errorCode) as Stream.Stream
+            )
+        );
     }
 }
 
