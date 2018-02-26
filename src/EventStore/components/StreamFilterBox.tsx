@@ -1,11 +1,12 @@
 import * as React from 'react';
-import {Form, Segment, Icon, Button} from 'semantic-ui-react';
+import {Form, Segment, Icon, Button, Popup} from 'semantic-ui-react';
 import {InjectedTranslateProps} from "react-i18next";
 import {StreamFilter} from "./StreamFilter";
 import {fromJS, List} from "immutable";
 import {Filter} from "../model";
 
 export interface StreamFilterBoxProps extends InjectedTranslateProps {
+    existingFilterProps: List<string>,
     filters: List<Filter.StreamFilter>,
     onFilterSubmit: (filters: List<Filter.StreamFilter>) => void,
     onClearFilter: () => void,
@@ -22,10 +23,18 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
 
     state = {dirtyFilters: fromJS([]), failedSubmit: false}
 
+    form;
+
     componentDidMount() {
         this.setState({
             dirtyFilters: this.props.filters
         })
+
+        document.addEventListener('keydown', this.handleKeyPress)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeyPress)
     }
 
     componentWillReceiveProps(props: StreamFilterBoxProps) {
@@ -34,10 +43,27 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
         })
     }
 
-    handleOnNewFilter = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+    addEmptyFilter() {
         this.setState({
             dirtyFilters: this.state.dirtyFilters.push(emptyFilter())
         })
+    }
+
+    submitFiltersIfValid(): boolean {
+        const invalidFilters = this.state.dirtyFilters.filterNot(filter => filter.isValid());
+        if(invalidFilters.count() > 0) {
+            this.setState({
+                failedSubmit: true
+            })
+            return false;
+        }
+
+        this.props.onFilterSubmit(this.state.dirtyFilters);
+        return true;
+    }
+
+    handleOnNewFilter = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+        this.addEmptyFilter();
         event.preventDefault();
     }
 
@@ -68,19 +94,13 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
         this.setState({
             dirtyFilters: this.state.dirtyFilters.remove(index)
         })
+        //Todo focus new btn
     }
 
     handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
-        const invalidFilters = this.state.dirtyFilters.filterNot(filter => filter.isValid());
-        if(invalidFilters.count() > 0) {
-            this.setState({
-                failedSubmit: true
-            })
+        if(!this.submitFiltersIfValid()) {
             event.preventDefault();
-            return false;
         }
-
-        this.props.onFilterSubmit(this.state.dirtyFilters);
     }
 
     handleClearFilter = (event: React.SyntheticEvent<HTMLButtonElement>) => {
@@ -89,15 +109,32 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
         return false;
     }
 
+    handleKeyPress = (event: KeyboardEvent) => {
+        console.log("key press", event)
+        if(event.ctrlKey && event.key === 'Enter') {
+            this.submitFiltersIfValid();
+        }
+
+        if(event.ctrlKey && event.key === '+') {
+            this.addEmptyFilter();
+            event.preventDefault();
+        }
+
+        if(event.key === 'Enter') {
+            event.preventDefault();
+        }
+    }
+
     render() {
-        return <Form onSubmit={this.handleSubmit}>
-            <Segment basic clearing className='filterbox' >
+        return <Form onSubmit={this.handleSubmit} ref={(form) => {this.form = form}}>
+            <Segment basic clearing className='filterbox'>
                 {
                     this.state.dirtyFilters.map(
                         (filter, index) => <StreamFilter
                             key={index}
                             index={index}
                             filter={filter}
+                            existingFilterProps={this.props.existingFilterProps}
                             onPropertyChanged={this.handlePropertyChanged}
                             onOperatorChanged={this.handleOperatorChanged}
                             onValueChanged={this.handleValueChanged}
@@ -106,13 +143,22 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
                             t={this.props.t} />
                     )
                 }
-                <Button basic onClick={this.handleOnNewFilter}><Icon name='plus' size='large' /></Button>
+                <Popup
+                    trigger={<Button id='newfilter' basic onClick={this.handleOnNewFilter} autoFocus><Icon name='plus' size='large' /></Button>}
+                    content='Ctrl +'
+                    on='hover'
+                    position='bottom center'
+                />
                 <Button basic floated='right' onClick={this.handleClearFilter}>
                     {this.props.t('app.eventStore.filter.clear')}
                 </Button>
-                <Button icon labelPosition='left' color='orange' floated='right' disabled={this.state.dirtyFilters.count() === 0}>
-                    <Icon name='filter'/>{ this.props.t('app.eventStore.filter.apply') }
-                </Button>
+                <Popup
+                    trigger={<Button icon labelPosition='left' color='orange' floated='right' disabled={this.state.dirtyFilters.count() === 0}>
+                        <Icon name='filter'/>{ this.props.t('app.eventStore.filter.apply') }
+                    </Button>}
+                    content='Ctrl + Enter'
+                    position='bottom center'
+                />
             </Segment>
         </Form>
     }

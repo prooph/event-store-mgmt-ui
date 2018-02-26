@@ -1,7 +1,7 @@
 import {DomainEvent, DomainEventType} from './DomainEvent';
 import {StreamName} from "./Stream";
 import * as Filter from "./StreamFilter";
-import {List, Record} from "immutable";
+import {fromJS, List, Record} from "immutable";
 import * as _ from 'lodash';
 
 const typeToQueryKey = (type: Filter.FilterType): string => type === 'metadata'? 'meta' : type;
@@ -27,6 +27,13 @@ const filterToQueryPart = (filter: Filter.StreamFilter, index: number): string =
     const property = encodeURIComponent(rmPropertyPrefix(translateProperty(filter.property())))
     const operator = encodeURIComponent(filter.operator());
     const value = encodeURIComponent(filter.value());
+
+    if(operator === Filter.IN || operator === Filter.NOT_IN) {
+        const values = fromJS(filter.value().split(';'));
+        return values.map(val => `${queryKey}_field=${property}&${queryKey}_operator=${operator}&${queryKey}_value[]=${val}`)
+            .toArray().join('&');
+    }
+
     return `${queryKey}_field=${property}&${queryKey}_operator=${operator}&${queryKey}_value=${value}`;
 }
 

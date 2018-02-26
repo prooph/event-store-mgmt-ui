@@ -1,8 +1,9 @@
 import {fromJS, List, Record} from "immutable";
 import {DomainEvent} from "./DomainEvent";
 import {StreamFilter} from "./StreamFilter";
-import * as _ from 'lodash';
 import {Query} from '../actions';
+import {eventProperties, PREFIX_META} from "./StreamFilter";
+import * as _ from 'lodash';
 
 export type StreamName = string;
 
@@ -93,5 +94,24 @@ export class Stream extends Record({
         }) as List<DomainEvent>
 
         return this.set('events', thisEvents) as Stream;
+    }
+
+    suggestFilterProperties(): List<string> {
+        let props = eventProperties.toArray();
+
+        this.events().forEach(event => {
+            event.metadata().forEach((val,key) => {
+                if(key === '_position') {
+                    return;
+                }
+                key = `${PREFIX_META}.${key}`;
+
+                if(!_.includes(props, key)) {
+                    props.push(key);
+                }
+            })
+        })
+
+        return List.of(...props);
     }
 }

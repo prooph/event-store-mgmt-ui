@@ -63,6 +63,7 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
                 {this.props.stream.showFilterBox() && <Segment basic>
                     <StreamFilterBox
                         filters={this.props.stream.filters()}
+                        existingFilterProps={this.props.stream.suggestFilterProperties()}
                         onFilterSubmit={this.handleFilterSubmit}
                         onClearFilter={() => this.props.onFilterSubmit(this.props.stream.name(), fromJS([]))}
                         t={this.props.t} />
