@@ -12,7 +12,8 @@ export interface StreamViewerProps extends InjectedTranslateProps {
     style?: any,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
     onRefresh: (stream: Stream.Stream) => void,
-    onFilterSubmit: (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void
+    onFilterSubmit: (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
+    onChangeUnsavedFilters: (unsaved: boolean) => void
 }
 
 export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
@@ -66,6 +67,7 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
                         existingFilterProps={this.props.stream.suggestFilterProperties()}
                         onFilterSubmit={this.handleFilterSubmit}
                         onClearFilter={() => this.props.onFilterSubmit(this.props.stream.name(), fromJS([]))}
+                        onChangeUnsavedState={this.props.onChangeUnsavedFilters}
                         t={this.props.t} />
                 </Segment>}
                 <Card fluid={true}>

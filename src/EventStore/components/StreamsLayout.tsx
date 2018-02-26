@@ -28,7 +28,11 @@ const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName):
 export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextRef: any, endOfStream: boolean}> {
     state = {contextRef: undefined, endOfStream: false}
 
+    //Internal cache, not part of state bc component should not rerender if changed internally
+    unsavedFilters: boolean
+
     componentDidMount() {
+        this.unsavedFilters = false
         const streamName = this.props.match.params.streamName || null;
 
         if(streamName) {
@@ -46,7 +50,15 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
         this.setState({ contextRef })
     }
 
+    handleChangeUnsavedFilters = (unsavedFilters: boolean) => {
+        this.unsavedFilters = unsavedFilters
+    }
+
     handleBottomVisible = () => {
+        if(this.unsavedFilters) {
+            return;
+        }
+
         const {streamName} = this.props.match.params;
         const stream = getStream(this.props.streams, streamName);
 
@@ -82,6 +94,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 onShowFilterBox={this.props.onShowFilterBox}
                 onRefresh={this.handleOnRefresh}
                 onFilterSubmit={this.handleFilterSubmit}
+                onChangeUnsavedFilters={this.handleChangeUnsavedFilters}
             />
             :
             <NoStreamSelected t={this.props.t}/>;

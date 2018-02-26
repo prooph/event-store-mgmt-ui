@@ -10,6 +10,7 @@ export interface StreamFilterBoxProps extends InjectedTranslateProps {
     filters: List<Filter.StreamFilter>,
     onFilterSubmit: (filters: List<Filter.StreamFilter>) => void,
     onClearFilter: () => void,
+    onChangeUnsavedState: (unsavedFilters: boolean) => void,
 }
 
 const emptyFilter = () => new Filter.StreamFilter({type: "metadata"})
@@ -19,7 +20,12 @@ const updateFilter = (filters: List<Filter.StreamFilter>, index: number, propToU
     return filters.set(index, filter.set(propToUpdate, val) as Filter.StreamFilter) as List<Filter.StreamFilter>;
 }
 
-export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirtyFilters: List<Filter.StreamFilter>, failedSubmit: boolean}> {
+interface StateProps {
+    dirtyFilters: List<Filter.StreamFilter>,
+    failedSubmit: boolean,
+}
+
+export class StreamFilterBox extends React.Component<StreamFilterBoxProps, StateProps> {
 
     state = {dirtyFilters: fromJS([]), failedSubmit: false}
 
@@ -45,8 +51,10 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
 
     addEmptyFilter() {
         this.setState({
-            dirtyFilters: this.state.dirtyFilters.push(emptyFilter())
+            dirtyFilters: this.state.dirtyFilters.push(emptyFilter()),
         })
+
+        this.props.onChangeUnsavedState(true);
     }
 
     submitFiltersIfValid(): boolean {
@@ -59,6 +67,7 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
         }
 
         this.props.onFilterSubmit(this.state.dirtyFilters);
+        this.props.onChangeUnsavedState(false);
         return true;
     }
 
@@ -73,28 +82,32 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
 
 
         this.setState({
-            dirtyFilters: filters
+            dirtyFilters: filters,
         })
+
+        this.props.onChangeUnsavedState(true)
     }
 
     handleOperatorChanged = (index: number, operator: string) => {
         console.log("operator ", operator)
         this.setState({
-            dirtyFilters: updateFilter(this.state.dirtyFilters, index, 'operator', operator)
+            dirtyFilters: updateFilter(this.state.dirtyFilters, index, 'operator', operator),
         })
+        this.props.onChangeUnsavedState(true)
     }
 
     handleValueChanged = (index: number, value: string) => {
         this.setState({
-            dirtyFilters: updateFilter(this.state.dirtyFilters, index, 'value', value)
+            dirtyFilters: updateFilter(this.state.dirtyFilters, index, 'value', value),
         })
+        this.props.onChangeUnsavedState(true)
     }
 
     handleRemoveFilter = (index: number) => {
         this.setState({
-            dirtyFilters: this.state.dirtyFilters.remove(index)
+            dirtyFilters: this.state.dirtyFilters.remove(index),
         })
-        //Todo focus new btn
+        this.props.onChangeUnsavedState(true)
     }
 
     handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
@@ -105,6 +118,7 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, {dirt
 
     handleClearFilter = (event: React.SyntheticEvent<HTMLButtonElement>) => {
         this.props.onClearFilter();
+        this.props.onChangeUnsavedState(false)
         event.preventDefault();
         return false;
     }
