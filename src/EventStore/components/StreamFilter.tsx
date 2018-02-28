@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {List} from "immutable";
 import { pure } from 'recompose';
-import {Form} from 'semantic-ui-react';
+import {Form, Popup} from 'semantic-ui-react';
 import {InjectedTranslateProps} from "react-i18next";
 import {Filter} from '../model';
 
@@ -70,6 +70,10 @@ export const StreamFilter = pure((props: StreamFilterProps) => {
             onChange={(event: any) => props.onValueChanged(props.index, event.target.value)}
             onKeyDown={(event) => handleEscape(event, props) }
         />
-        <Form.Button fluid basic icon='remove' size='large' onClick={() => props.onRemoveFilter(props.index)} />
+        <Popup
+            trigger={<Form.Button fluid basic icon='remove' size='large' onClick={() => props.onRemoveFilter(props.index)} />}
+            content={props.t('app.eventStore.filter.delete') + ' (Esc)'}
+            position='bottom left'
+            />
     </Form.Group>
 });

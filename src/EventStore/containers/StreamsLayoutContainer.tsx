@@ -2,7 +2,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {InjectedTranslateProps, translate} from "react-i18next";
 import {RouteComponentProps, withRouter} from "react-router";
-import {Stream, Event, EventStore, Filter} from "../model";
+import {Stream, Event, EventStore, Filter, Watcher} from "../model";
 import {List} from "immutable";
 import {StreamsLayout} from "../components/StreamsLayout";
 import {StreamsSelector} from "../selectors";
@@ -19,6 +19,7 @@ interface PropsToDispatch {
     onGetFilteredEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onStreamSelected: (streamName: Stream.StreamName) => void,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
+    onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
 interface OwnProps extends RouteComponentProps<{streamName?: Stream.StreamName}> {
@@ -33,6 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
         onGetFilteredEvents: Query.getFilteredStreamEvents,
         onStreamSelected: Cmd.setSelectedStream,
         onShowFilterBox: Cmd.showFilterBox,
+        onAddWatcher: Cmd.addStreamWatcher,
     } as any, dispatch);
 };
 

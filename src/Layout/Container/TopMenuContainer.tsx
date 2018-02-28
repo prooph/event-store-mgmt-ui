@@ -6,6 +6,7 @@ import * as TopMenuSelector from '../selectors';
 
 interface StateProps extends InjectedTranslateProps {
     selectedStream: ESModel.Stream.StreamName,
+    selectedWatcher: ESModel.Watcher.Id,
 }
 
 interface PropsToDispatch {

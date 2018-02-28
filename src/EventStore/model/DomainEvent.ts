@@ -12,8 +12,8 @@ export interface DomainEventType {
 export class DomainEvent extends Record({
     message_name: "Unknown",
     uuid: "00000000-0000-0000-0000-00000000",
-    payload: {},
-    metadata: {_position: 0},
+    payload: fromJS({}),
+    metadata: fromJS({_position: 0}),
     created_at: moment().toISOString()
 }) {
     constructor(data: DomainEventType) {

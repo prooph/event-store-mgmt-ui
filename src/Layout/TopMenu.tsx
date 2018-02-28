@@ -10,6 +10,7 @@ const logo = require('../theme/img/prooph-logo@0.5x.png');
 
 export interface TopMenuProps extends InjectedTranslateProps {
     selectedStream: ESModel.Stream.StreamName;
+    selectedWatcher: ESModel.Watcher.Id;
 }
 
 const TopMenu = pure((props: any) => {
@@ -21,6 +22,11 @@ const TopMenu = pure((props: any) => {
                   activeClassName="active">
             <Icon name='database' color='orange' />
             {props.t('app.sidemenu.eventStore')}
+        </MenuItem>
+        <MenuItem as={NavLink} to={Routes.watchersPath.link(props.selectedWatcher)}
+                  activeClassName="active">
+            <Icon name='eye' color='green' />
+            {props.t('app.sidemenu.watchers')}
         </MenuItem>
         <MenuItem as={NavLink} to={Routes.messageFlowPath}
                   activeClassName="active">

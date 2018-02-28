@@ -3,7 +3,8 @@ import {Form, Segment, Icon, Button, Popup} from 'semantic-ui-react';
 import {InjectedTranslateProps} from "react-i18next";
 import {StreamFilter} from "./StreamFilter";
 import {fromJS, List} from "immutable";
-import {Filter} from "../model";
+import {Filter, Watcher, Stream} from "../model";
+import {CreateWatcherModal} from "./CreateWatcherModal";
 
 export interface StreamFilterBoxProps extends InjectedTranslateProps {
     existingFilterProps: List<string>,
@@ -11,6 +12,7 @@ export interface StreamFilterBoxProps extends InjectedTranslateProps {
     onFilterSubmit: (filters: List<Filter.StreamFilter>) => void,
     onClearFilter: () => void,
     onChangeUnsavedState: (unsavedFilters: boolean) => void,
+    onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name) => void,
 }
 
 const emptyFilter = () => new Filter.StreamFilter({type: "metadata"})
@@ -23,13 +25,12 @@ const updateFilter = (filters: List<Filter.StreamFilter>, index: number, propToU
 interface StateProps {
     dirtyFilters: List<Filter.StreamFilter>,
     failedSubmit: boolean,
+    showWatcherModal: boolean,
 }
 
 export class StreamFilterBox extends React.Component<StreamFilterBoxProps, StateProps> {
 
-    state = {dirtyFilters: fromJS([]), failedSubmit: false}
-
-    form;
+    state = {dirtyFilters: fromJS([]), failedSubmit: false, showWatcherModal: false}
 
     componentDidMount() {
         this.setState({
@@ -116,6 +117,22 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
         }
     }
 
+    handleOnCreateWatcher = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+        if(!this.submitFiltersIfValid()) {
+            return;
+        }
+
+        this.setState({showWatcherModal: true})
+    }
+
+    handleCloseWatcherModal = () => this.setState({showWatcherModal: false})
+
+    handleSubmitWatcher = (watcherId: Watcher.Id, watcherName: Watcher.Name) => {
+        this.props.onAddWatcher(watcherId, watcherName);
+        this.setState({showWatcherModal: false})
+    }
+
+
     handleClearFilter = (event: React.SyntheticEvent<HTMLButtonElement>) => {
         this.props.onClearFilter();
         this.props.onChangeUnsavedState(false)
@@ -140,7 +157,7 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
     }
 
     render() {
-        return <Form onSubmit={this.handleSubmit} ref={(form) => {this.form = form}}>
+        return <Form onSubmit={this.handleSubmit}>
             <Segment basic clearing className='filterbox'>
                 {
                     this.state.dirtyFilters.map(
@@ -159,8 +176,24 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
                 }
                 <Popup
                     trigger={<Button id='newfilter' basic onClick={this.handleOnNewFilter} autoFocus><Icon name='plus' size='large' /></Button>}
-                    content='Ctrl +'
+                    content={this.props.t('app.eventStore.filter.new') + ' (Ctrl +)'}
                     on='hover'
+                    position='bottom center'
+                />
+                <CreateWatcherModal open={this.state.showWatcherModal}
+                                    onClose={this.handleCloseWatcherModal}
+                                    onSubmitWatcher={this.handleSubmitWatcher}
+                                    t={this.props.t}/>
+                <Popup
+                    trigger={<Button
+                        color='green'
+                        circular
+                        disabled={this.state.dirtyFilters.count() === 0}
+                        icon='eye'
+                        size='tiny'
+                        onClick={this.handleOnCreateWatcher}
+                        />}
+                    content={ this.props.t('app.eventStore.filter.new_watcher') }
                     position='bottom center'
                 />
                 <Button basic floated='right' onClick={this.handleClearFilter}>

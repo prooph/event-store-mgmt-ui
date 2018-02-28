@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { translate, InjectedTranslateProps } from 'react-i18next';
-import {RouteComponentProps, withRouter} from 'react-router';
+import {RouteComponentProps} from 'react-router';
 import {Containers} from "./EventStore/index";
 import * as Routes from './routes';
 import {EventStore as EventStoreModel} from './EventStore/model';

@@ -1,5 +1,6 @@
-import {Record, fromJS} from "immutable";
+import {Record, fromJS, List} from "immutable";
 import * as _ from 'lodash';
+import {DomainEvent} from "./DomainEvent";
 
 export const EQUALS = 'EQUALS';
 export const NOT_EQUALS = 'NOT_EQUALS';
@@ -12,6 +13,8 @@ export const NOT_IN = 'NOT_IN';
 export const REGEX = 'REGEX';
 export const PREFIX_EVENT = 'event';
 export const PREFIX_META = 'meta';
+export const EVENT_PROPERTY = 'property';
+export const METADATA = 'metadata';
 
 export type Metadata = 'metadata';
 export type EventProperty = 'property';
@@ -83,4 +86,66 @@ export class StreamFilter extends Record({
             && !_.isEmpty(this.operator())
             && !_.isEmpty(this.value());
     }
+}
+
+export function match(filters: List<StreamFilter>, event: DomainEvent): boolean {
+    let matched = true;
+
+    filters.forEach(filter => {
+        if(!matchFilter(filter, event)) {
+            matched = false;
+        }
+    })
+
+    return matched;
+}
+
+function matchFilter(filter: StreamFilter, event: DomainEvent): boolean {
+    switch (filter.operator()) {
+        case EQUALS:
+            return extractEventValue(filter, event) === castFilterValue(event, filter);
+        case NOT_EQUALS:
+            return extractEventValue(filter, event) !== castFilterValue(event, filter);
+        case GREATER_THAN:
+            return extractEventValue(filter, event) > castFilterValue(event, filter);
+        case GREATER_THAN_EQUALS:
+            return extractEventValue(filter, event) >= castFilterValue(event, filter);
+        case LOWER_THAN:
+            return extractEventValue(filter, event) < castFilterValue(event, filter);
+        case LOWER_THAN_EQUALS:
+            return extractEventValue(filter, event) <= castFilterValue(event, filter);
+        case IN:
+            return _.includes(castFilterValueArr(event, filter), extractEventValue(filter, event));
+        case NOT_IN:
+            return !_.includes(castFilterValueArr(event, filter), extractEventValue(filter, event));
+        case REGEX:
+            return  RegExp(filter.value()).test(extractEventValue(filter, event).toString());
+    }
+
+    return false;
+}
+
+function extractEventValue(filter: StreamFilter, event: DomainEvent): string | number {
+    if(filter.type() === 'property') {
+        return event.get(normalizeEventProperty(filter.property()), '')
+    }
+
+    return event.metadata().get(normalizeMetadata(filter.property()), '')
+}
+
+function normalizeEventProperty(prop: string): string {
+    return prop.replace(/^event\./, '');
+}
+
+function normalizeMetadata(meta: string): string {
+    return meta.replace(/^meta\./, '');
+}
+
+function castFilterValue(event: DomainEvent, filter: StreamFilter): string | number {
+    return _.isNumber(extractEventValue(filter, event))? parseInt(filter.value()) : filter.value();
+}
+
+function castFilterValueArr(event: DomainEvent, filter: StreamFilter): string[] | number[] {
+    const filterValArr = filter.value().split(";");
+    return _.isNumber(extractEventValue(filter, event))? filterValArr.map(parseInt) : filterValArr;
 }

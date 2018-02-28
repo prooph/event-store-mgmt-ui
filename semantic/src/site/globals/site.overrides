@@ -23,8 +23,17 @@ i.refresh.event_store.active {
     border-bottom: 1px solid @orange;
 }
 
+.ui.divider.watcher:not(.vertical):not(.horizontal) {
+    border-top: 1px solid @green;
+    border-bottom: 1px solid @green;
+}
+
 .ui.secondary.vertical.pointing.menu.event_store .active.item {
     border-color: @orange;
+}
+
+.ui.secondary.vertical.pointing.menu.watcher .active.item {
+    border-color: @green;
 }
 
 .ui.basic.segment.filterbox,

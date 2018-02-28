@@ -2,7 +2,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as Layout from './Layout';
 import * as Routes from './routes';
-import { Segment, Menu, Icon } from 'semantic-ui-react';
+import { Segment} from 'semantic-ui-react';
+import {Map} from 'immutable';
 import createSagaMiddleware from 'redux-saga';
 import notify from './notify';
 import reducer, { State, INITIAL_STATE } from './reducer';
@@ -19,7 +20,8 @@ import MessageFlow from "./MessageFlow";
 import {MessageFlow as MessageFlowModel} from "./MessageFlow/model/MessageFlow"
 import Notifications from "./NotificationSystem/containers/NotificationsContainer";
 import EventStore, {withHttpApi} from "./EventStore";
-import {Actions as EventStoreActions} from "./EventStore/index";
+import Watchers from "./Watchers";
+import {Actions as EventStoreActions, WATCHERS_PATH, Model as EventStoreModel} from "./EventStore/index";
 import {EventStoreHttpApi} from "./EventStore/index";
 import * as $ from 'jquery';
 import * as cytoscape from 'cytoscape';
@@ -34,8 +36,10 @@ gridGuide(cytoscape, $);
 
 //Load translations with i18next webpack loader to avoid extra web requests
 import * as i18next from 'i18next';
+
+//Local storage
 import {PATH_MESSAGE_FLOW} from "./MessageFlow/reducers/index";
-import {loadMessageFlow, saveMessageFlow} from "./core/localStorage";
+import {loadMessageFlow, saveMessageFlow, loadWatchers, saveWatchers} from "./core/localStorage";
 
 const resources = require('i18next-resource-store-loader!./i18n/index.js');
 
@@ -75,7 +79,8 @@ const sagaMiddleware = createSagaMiddleware();
 
 const history = createHashHistory();
 
-const initialState = INITIAL_STATE.set(PATH_MESSAGE_FLOW, loadMessageFlow());
+const initialState = INITIAL_STATE.set(PATH_MESSAGE_FLOW, loadMessageFlow())
+    .setIn(WATCHERS_PATH, loadWatchers());
 
 console.log("initial state", initialState.toJSON());
 
@@ -91,6 +96,9 @@ const store = createStore(
 store.subscribe(() => {
     const messageFlow: MessageFlowModel = store.getState().get(PATH_MESSAGE_FLOW) as MessageFlowModel;
     saveMessageFlow(messageFlow);
+
+    const watchers: Map<string, EventStoreModel.Watcher.Watcher> = store.getState().getIn(WATCHERS_PATH) as Map<string, EventStoreModel.Watcher.Watcher>;
+    saveWatchers(watchers);
 })
 
 sagaMiddleware.run(rootSaga as any);
@@ -106,6 +114,7 @@ const Main = () => (
         <Redirect exact path={Routes.rootPath} to={Routes.overviewPath}/>
         <Route exact path={Routes.overviewPath} component={Overview}/>
         <Route path={Routes.eventStorePath.route} component={withHttpApi(httpApi)(EventStore)}/>
+        <Route path={Routes.watchersPath.route} component={Watchers}/>
         <Route exact path={Routes.messageFlowPath} component={MessageFlow}/>
     </Switch>
 );

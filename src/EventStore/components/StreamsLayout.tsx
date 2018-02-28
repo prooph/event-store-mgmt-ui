@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {Grid, Segment, Sticky, Rail, Visibility, Message} from 'semantic-ui-react';
 import {InjectedTranslateProps} from "react-i18next";
-import {Route, RouteComponentProps, Switch} from "react-router";
+import {RouteComponentProps} from "react-router";
 import {List} from "immutable";
-import {Stream, Event, EventStore, Filter} from "../model";
+import {Stream, Event, EventStore, Filter, Watcher} from "../model";
 import {StreamNav} from "./StreamNav";
 import {NoStreamSelected} from "./NoStreamSelected";
 import {StreamViewer} from "./StreamViewer";
@@ -17,6 +17,7 @@ export interface StreamsLayoutProps extends RouteComponentProps<{streamName?: St
     onGetLatestEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName) => void,
     onGetFilteredEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onStreamSelected: (streamName: Stream.StreamName) => void,
+    onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
 const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName): Stream.Stream => {
@@ -95,6 +96,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 onRefresh={this.handleOnRefresh}
                 onFilterSubmit={this.handleFilterSubmit}
                 onChangeUnsavedFilters={this.handleChangeUnsavedFilters}
+                onAddWatcher={this.props.onAddWatcher}
             />
             :
             <NoStreamSelected t={this.props.t}/>;

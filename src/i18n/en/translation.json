@@ -3,7 +3,8 @@
         "title": "React + Redux + Semantic UI Skeleton",
         "sidemenu": {
             "eventStore": "Event Store",
-            "messageFlow": "Message Flow"
+            "messageFlow": "Message Flow",
+            "watchers": "Watcher"
         },
         "loading": "Loading ...",
         "eventStore": {
@@ -23,8 +24,21 @@
                 "property": "Property oder Metadata",
                 "operator": "=",
                 "value": "Filterwert",
+                "new": "Add filter",
                 "apply": "Apply",
-                "clear": "Clear filter"
+                "clear": "Clear filters",
+                "delete": "Delete filter",
+                "new_watcher": "Create watcher"
+            },
+            "watcher": {
+                "title": "Watcher",
+                "no_watcher_selected": "Chose a watcher from the right side to see details.",
+                "modal": {
+                    "title": "Create a Stream Watcher",
+                    "watcher_name": "Watcher name",
+                    "submit": "Save",
+                    "desc": "A watcher observes the stream it is attached to and collects new events using defined filters."
+                }
             }
         }
     }

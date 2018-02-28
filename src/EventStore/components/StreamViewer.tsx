@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {InjectedTranslateProps} from "react-i18next";
-import {RouteComponentProps} from "react-router";
-import {Stream, Filter} from "../model";
+import {Stream, Filter, Watcher} from "../model";
 import {Header, Card, Message, Accordion, Icon, Segment, Divider, Button} from "semantic-ui-react";
 import Event from "./Event";
 import {StreamFilterBox} from "./StreamFilterBox";
@@ -13,7 +12,8 @@ export interface StreamViewerProps extends InjectedTranslateProps {
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
     onRefresh: (stream: Stream.Stream) => void,
     onFilterSubmit: (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
-    onChangeUnsavedFilters: (unsaved: boolean) => void
+    onChangeUnsavedFilters: (unsaved: boolean) => void,
+    onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
 export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
@@ -23,6 +23,13 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
     handleFilterSubmit = (filters: List<Filter.StreamFilter>) => this.props.onFilterSubmit(this.props.stream.name(), filters)
 
     handleShowFilterBoxClick = () => this.props.onShowFilterBox(this.props.stream.name(), !this.props.stream.showFilterBox())
+
+    handleOnAddWatcher = (watcherId: Watcher.Id, watcherName: Watcher.Name) => this.props.onAddWatcher(
+        watcherId,
+        watcherName,
+        this.props.stream.name(),
+        this.props.stream.filters()
+    );
 
     render() {
         let panels = [];
@@ -68,6 +75,7 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
                         onFilterSubmit={this.handleFilterSubmit}
                         onClearFilter={() => this.props.onFilterSubmit(this.props.stream.name(), fromJS([]))}
                         onChangeUnsavedState={this.props.onChangeUnsavedFilters}
+                        onAddWatcher={this.handleOnAddWatcher}
                         t={this.props.t} />
                 </Segment>}
                 <Card fluid={true}>
