@@ -1,4 +1,4 @@
-import {fromJS} from "immutable";
+import {fromJS, List} from "immutable";
 import {Action} from "redux";
 import {State} from "../../reducer";
 import {Cmd} from "../actions";
@@ -8,7 +8,7 @@ const onAddStreamWatcher = (state: State, action: Cmd.AddStreamWatcher): State =
     return state.set(action.watcherId, fromJS(new Watcher.Watcher({
         watcherId: action.watcherId,
         watcherName: action.watcherName,
-        streamName: action.streamName,
+        streams: List.of(action.streamName),
         filters: action.filters
     })))
 }

@@ -6,6 +6,7 @@ export const SET_SELECTED_STREAM = 'SET_SELECTED_STREAM';
 export const SET_SELECTED_WATCHER = 'SET_SELECTED_WATCHER';
 export const SHOW_FILTER_BOX = 'SHOW_FILTER_BOX';
 export const ADD_STREAM_WATCHER = 'ADD_STREAM_WATCHER';
+export const REMOVE_STREAM_WATCHER = 'REMOVE_STREAM_WATCHER';
 
 export interface SetSelectedStream extends Action {
     selectedStream: Stream.StreamName
@@ -60,5 +61,16 @@ export function addStreamWatcher(
         streamName,
         filters,
         type: ADD_STREAM_WATCHER
+    }
+}
+
+export interface RemoveStreamWatcher extends Action {
+    watcherId: Watcher.Id,
+}
+
+export function removeStreamWatcher(watcherId: Watcher.Id): RemoveStreamWatcher {
+    return {
+        watcherId,
+        type: REMOVE_STREAM_WATCHER,
     }
 }

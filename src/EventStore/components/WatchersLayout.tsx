@@ -7,11 +7,13 @@ import {Stream, Event, EventStore, Filter, Watcher} from "../model";
 import {WatcherNav} from "./WatcherNav";
 import {WatcherViewer} from "./WatcherViewer";
 import {NoWatcherSelected} from "./NoWatcherSelected";
+import {Redirect} from "react-router-dom";
 
 export interface WatchersLayoutProps  extends RouteComponentProps<{watcherId?: Watcher.Id}>, InjectedTranslateProps {
     baseUrl: string,
     watchers: Map<string, Watcher.Watcher>,
-    onWatcherSelected: (watcherId: Watcher.Id) => void
+    onWatcherSelected: (watcherId: Watcher.Id) => void,
+    onRemoveWatcher: (watcherId: Watcher.Id) => void,
 }
 
 export class WatchersLayout extends React.Component<WatchersLayoutProps, {contextRef: any}> {
@@ -26,12 +28,18 @@ export class WatchersLayout extends React.Component<WatchersLayoutProps, {contex
     render() {
         const {contextRef} = this.state;
         const { watcherId } = this.props.match.params;
+        const watcher = this.getWatcher(watcherId);
+
+        if(watcherId && !watcher) {
+            return <Redirect to={this.props.baseUrl}/>
+        }
 
         const content = (watcherId)?
             <WatcherViewer
                 t={this.props.t}
                 watcher={this.getWatcher(watcherId)}
                 style={{minHeight: window.innerHeight}}
+                onRemoveWatcher={this.props.onRemoveWatcher}
             />
             :
             <NoWatcherSelected t={this.props.t}/>;

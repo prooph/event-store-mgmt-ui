@@ -18,6 +18,11 @@ i.refresh.event_store.active {
     color: @orange;
 }
 
+i.filter.watcher.active,
+i.filter.watcher:hover {
+    color: @green;
+}
+
 .ui.divider.event_store:not(.vertical):not(.horizontal) {
     border-top: 1px solid @orange;
     border-bottom: 1px solid @orange;

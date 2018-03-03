@@ -15,6 +15,7 @@ interface StateProps extends InjectedTranslateProps {
 
 interface PropsToDispatch {
     onWatcherSelected: (watcherId: Watcher.Id) => void,
+    onRemoveWatcher: (watcherId: Watcher.Id) => void
 }
 
 interface OwnProps extends RouteComponentProps<{watcherId?: Watcher.Id}>  {
@@ -24,6 +25,7 @@ interface OwnProps extends RouteComponentProps<{watcherId?: Watcher.Id}>  {
 const mapDispatchToProps = (dispatch: Dispatch) => {
     return bindActionCreators({
         onWatcherSelected: Cmd.setSelectedWatcher,
+        onRemoveWatcher: Cmd.removeStreamWatcher,
     } as any, dispatch);
 };
 

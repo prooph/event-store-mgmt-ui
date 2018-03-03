@@ -6,6 +6,7 @@ import applyStreamEvents from "./applyStreamEvents";
 import applyFilteredStreamEvents from "./applyFilteredStreamEvents";
 import applyShowFilterBox from "./applyShowFilterBox";
 import applyAddWatcher from "./applyAddWatcher";
+import applyRemoveWatcher from "./applyRemoveWatcher"
 import {Stream, Watcher} from "../model";
 
 const initialState = fromJS({
@@ -49,6 +50,8 @@ export default (state = initialState, action: Action) => {
             return state.set("streamList", applyShowFilterBox(state.get("streamList", initialState.get("streamList")), action));
         case Cmd.ADD_STREAM_WATCHER:
             return state.set("watcherList", applyAddWatcher(state.get("watcherList", Map({})), action));
+        case Cmd.REMOVE_STREAM_WATCHER:
+            return state.set("watcherList", applyRemoveWatcher(state.get("watcherList", Map({})), action));
         default:
             return state;
     }

@@ -31,7 +31,7 @@
                 "new_watcher": "Create watcher"
             },
             "watcher": {
-                "title": "Watcher",
+                "title": "Watch",
                 "no_watcher_selected": "Chose a watcher from the right side to see details.",
                 "modal": {
                     "title": "Create a Stream Watcher",

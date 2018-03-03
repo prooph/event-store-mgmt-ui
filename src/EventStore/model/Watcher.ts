@@ -9,7 +9,7 @@ export type Name = string;
 export interface WatcherType {
     watcherId: Id,
     watcherName: Name,
-    streamName: StreamName,
+    streams: List<StreamName>,
     filters: List<StreamFilter>,
     watching?: boolean,
     recordedEvents?: List<DomainEvent>
@@ -19,7 +19,7 @@ export interface WatcherType {
 export class Watcher extends Record({
     watcherId: '',
     watcherName: 'unknown watcher',
-    streamName: 'unknown stream',
+    streams: fromJS([]),
     filters: fromJS([]),
     watching: true,
     recordedEvents: fromJS([]),
@@ -30,7 +30,7 @@ export class Watcher extends Record({
 
         this.id = this.id.bind(this)
         this.name = this.name.bind(this)
-        this.streamName = this.streamName.bind(this)
+        this.streams = this.streams.bind(this)
         this.filters = this.filters.bind(this)
         this.isWatching = this.isWatching.bind(this)
         this.recordedEvents = this.recordedEvents.bind(this)
@@ -45,8 +45,8 @@ export class Watcher extends Record({
         return this.get('watcherName')
     }
 
-    streamName(): StreamName {
-        return this.get('streamName')
+    streams(): List<StreamName> {
+        return this.get('streams')
     }
 
     filters(): List<StreamFilter> {
