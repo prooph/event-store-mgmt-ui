@@ -1,5 +1,9 @@
 import {Record} from 'immutable';
-const uuid4 = require("uuid/v4");
+
+export interface NotificationActionType {
+    label: string,
+    callback: () => void
+}
 
 export interface MessageType {
     title?: string | null,
@@ -10,6 +14,7 @@ export interface MessageType {
     dismissible?: boolean,
     handled?: boolean,
     uid?: string,
+    action?: NotificationActionType | null,
 }
 
 export class Message extends Record({
@@ -20,7 +25,8 @@ export class Message extends Record({
     autoDismiss: 5,
     dismissible: true,
     handled: false,
-    uid: uuid4()
+    uid: 'unknown',
+    action: null,
 }) {
     constructor(data: MessageType) {
         super(data);
@@ -33,6 +39,8 @@ export class Message extends Record({
         this.handled = this.handled.bind(this);
         this.uid = this.uid.bind(this);
         this.markAsHandled = this.markAsHandled.bind(this);
+        this.hasAction = this.hasAction.bind(this);
+        this.action = this.action.bind(this);
     }
 
     title(): string | null {
@@ -69,5 +77,13 @@ export class Message extends Record({
 
     markAsHandled(): Message {
         return this.set("handled", true) as Message;
+    }
+
+    hasAction(): boolean {
+        return null !== this.get("action", null);
+    }
+
+    action(): NotificationActionType | null {
+        return this.get("action", null);
     }
 }

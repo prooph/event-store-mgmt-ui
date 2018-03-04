@@ -9,7 +9,7 @@ import {WatcherViewer} from "./WatcherViewer";
 import {NoWatcherSelected} from "./NoWatcherSelected";
 import {Redirect} from "react-router-dom";
 
-export interface WatchersLayoutProps  extends RouteComponentProps<{watcherId?: Watcher.Id}>, InjectedTranslateProps {
+export interface WatchersLayoutProps  extends RouteComponentProps<{watcherId?: Watcher.Id, eventId?: string}>, InjectedTranslateProps {
     baseUrl: string,
     watchers: Map<string, Watcher.Watcher>,
     onWatcherSelected: (watcherId: Watcher.Id) => void,
@@ -28,7 +28,7 @@ export class WatchersLayout extends React.Component<WatchersLayoutProps, {contex
 
     render() {
         const {contextRef} = this.state;
-        const { watcherId } = this.props.match.params;
+        const { watcherId, eventId } = this.props.match.params;
         const watcher = this.getWatcher(watcherId);
 
         if(watcherId && !watcher) {
@@ -39,6 +39,7 @@ export class WatchersLayout extends React.Component<WatchersLayoutProps, {contex
             <WatcherViewer
                 t={this.props.t}
                 watcher={this.getWatcher(watcherId)}
+                activeEventId={eventId}
                 style={{minHeight: window.innerHeight}}
                 onRemoveWatcher={this.props.onRemoveWatcher}
                 onToggleWatcher={this.props.onToggleWatcher}

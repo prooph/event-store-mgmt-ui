@@ -77,7 +77,7 @@ export class Watcher extends Record({
                 return 0;
             }
 
-            return a.createdAt() > b.createdAt()? 1 : -1;
+            return a.createdAt() < b.createdAt()? 1 : -1;
         }) as List<DomainEvent>
 
         return this.set('recordedEvents', thisEvents) as Watcher;

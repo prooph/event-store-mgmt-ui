@@ -103,7 +103,7 @@ store.subscribe(() => {
 
 const httpApi = new EventStoreHttpApi('/api/v1');
 
-sagaMiddleware.run(rootSaga as any, httpApi);
+sagaMiddleware.run(rootSaga as any, httpApi, history);
 
 store.dispatch(EventStoreActions.Query.getInitialStreamList(httpApi));
 
@@ -114,6 +114,7 @@ const Main = () => (
         <Redirect exact path={Routes.rootPath} to={Routes.overviewPath}/>
         <Route exact path={Routes.overviewPath} component={Overview}/>
         <Route path={Routes.eventStorePath.route} component={withHttpApi(httpApi)(EventStore)}/>
+        <Route path={Routes.watchersEventDetailsPath.route} component={Watchers}/>
         <Route path={Routes.watchersPath.route} component={Watchers}/>
         <Route exact path={Routes.messageFlowPath} component={MessageFlow}/>
     </Switch>
@@ -123,7 +124,7 @@ const Root = () => (
     <Segment>
         <Layout.TopMenu />
         <Main/>
-        <Notifications/>
+        <Notifications maxMessages={4} />
     </Segment>
 );
 

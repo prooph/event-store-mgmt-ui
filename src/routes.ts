@@ -10,4 +10,8 @@ export const watchersPath = {
     route: '/watchers/:watcherId?',
     link: (watcherId: EventStoreModel.Watcher.Id | null) => (watcherId? "/watchers/"+watcherId : "/watchers")
 };
+export const watchersEventDetailsPath = {
+    route: '/watchers/:watcherId/:eventId',
+    link: (watcherId: EventStoreModel.Watcher.Id, eventId: string) => (`/watchers/${watcherId}/${eventId}`)
+};
 export const messageFlowPath = '/message-flow';

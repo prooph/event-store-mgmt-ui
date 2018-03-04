@@ -35,6 +35,7 @@
                 "no_watcher_selected": "Chose a watcher from the right side to see details.",
                 "activate_watch_mode": "Activate watcher",
                 "deactivate_watch_mode": "Deactivate watcher",
+                "no_recorded_events": "No events received yet.",
                 "modal": {
                     "title": "Create a Stream Watcher",
                     "watcher_name": "Watcher name",

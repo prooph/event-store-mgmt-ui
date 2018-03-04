@@ -17,6 +17,7 @@ interface PropsToDispatch {
 }
 
 interface OwnProps {
+    maxMessages?: number,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => {

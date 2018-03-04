@@ -7,7 +7,9 @@ import {Cmd, Query, Evt} from "../actions";
 import {EventStore, Watcher, Event, Stream} from "../model";
 import {mapStreamResponse} from "../reducers";
 import {WatchersSelector} from "../selectors";
-import {Action as Notify} from "../../NotificationSystem";
+import {Action as Notify, NotificationModel} from "../../NotificationSystem";
+import {History} from "history";
+import * as Routes from "../../routes";
 
 function* watchStream(streamName: Stream.StreamName, httpApi: EventStore.EventStoreHttpApi, chan: Channel<Evt.NewDomainEventReceived>) {
     let latestEvent: Event.DomainEvent = yield call(fetchLatestEvent, streamName, httpApi);
@@ -27,7 +29,7 @@ function* watchStream(streamName: Stream.StreamName, httpApi: EventStore.EventSt
     }
 }
 
-function* handleEvents(chan: Channel<Evt.NewDomainEventReceived>) {
+function* handleEvents(history: History, chan: Channel<Evt.NewDomainEventReceived>) {
     while(true) {
         const action = yield take(chan);
 
@@ -41,13 +43,25 @@ function* handleEvents(chan: Channel<Evt.NewDomainEventReceived>) {
             if(watcher.isInterestedIn(action.streamName, action.event)) {
                 yield put(Cmd.recordWatcherEvent(watcher.id(), action.event));
                 //@TODO: check watcher config if notification should be triggered
-                yield put(Notify.Command.info(`Watcher: ${watcher.name()}`, action.event.shortMessageName(), false));
+
+                const notification = new NotificationModel.Message({
+                    title: `Watcher: ${watcher.name()}`,
+                    message: action.event.shortMessageName(),
+                    autoDismiss: 0,
+                    action: {
+                        label: 'Details',
+                        callback: () => {
+                            history.push(Routes.watchersEventDetailsPath.link(watcher.id(), action.event.uuid()))
+                        }
+                    }
+                })
+                yield put(Notify.Command.notify(notification));
             }
         }
     }
 }
 
-export default function* watchStreamsFlow(httpApi: EventStore.EventStoreHttpApi) {
+export default function* watchStreamsFlow(httpApi: EventStore.EventStoreHttpApi, history: History) {
 
     const chan = yield call(channel);
     let watcherTaskList = Map({});
@@ -61,7 +75,7 @@ export default function* watchStreamsFlow(httpApi: EventStore.EventStoreHttpApi)
         watcherTaskList = watcherTaskList.set(activeStream, task);
     }
 
-    yield fork(handleEvents, chan);
+    yield fork(handleEvents, history, chan);
 
     while (true) {
         const action = yield take([Cmd.REMOVE_STREAM_WATCHER, Cmd.TOGGLE_STREAM_WATCHER]);

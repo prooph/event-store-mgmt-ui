@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {InjectedTranslateProps} from "react-i18next";
 import {Watcher} from "../model";
-import {Header, Icon, Segment, Divider, Button, Radio, Popup} from "semantic-ui-react";
+import {Header, Accordion, Divider, Radio, Popup, Message, Card} from "semantic-ui-react";
 import Event from "./Event";
 import {StreamFilterBox} from "./StreamFilterBox";
 import {fromJS, List} from "immutable";
@@ -10,6 +10,7 @@ import {fromJS, List} from "immutable";
 export interface WatcherViewerProps extends InjectedTranslateProps {
     watcher: Watcher.Watcher,
     style?: any,
+    activeEventId?: string,
     onRemoveWatcher: (watcherId: Watcher.Id) => void,
     onToggleWatcher: (watcherId: Watcher.Id, isWatching: boolean) => void,
 }
@@ -21,6 +22,23 @@ export class WatcherViewer extends React.Component<WatcherViewerProps, undefined
     }
 
     render() {
+        let panels = [];
+        let activePanel = -1;
+
+        if (this.props.watcher.recordedEvents().count() > 0) {
+            panels = this.props.watcher.recordedEvents()
+                .map((event, i) => {
+                    if(this.props.activeEventId === event.uuid()) {
+                        activePanel = i;
+                    }
+
+                    return Event({
+                        event,
+                        t: this.props.t,
+                    })
+                }).toArray();
+        }
+
         return <div style={this.props.style}>
             <Header as="h1" textAlign="center">
                 { this.props.t('app.eventStore.watcher.title') + " / " + this.props.watcher.name() }
@@ -41,6 +59,14 @@ export class WatcherViewer extends React.Component<WatcherViewerProps, undefined
                 </Header>
             </Header>
             <Divider className='watcher' />
+            <Card fluid={true}>
+                {panels.length === 0 &&
+                <Message warning={true}>{this.props.t('app.eventStore.watcher.no_recorded_events')}</Message>
+                }
+                {panels.length > 0 &&
+                <Accordion styled={true} fluid={true} defaultActiveIndex={[activePanel]} panels={panels} exclusive={false} className={'event_stream'} />
+                }
+            </Card>
         </div>
     }
 }
