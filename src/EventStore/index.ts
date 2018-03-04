@@ -4,6 +4,7 @@ import {PATH as STATE_PATH, WATCHERS_PATH} from './reducers';
 import {EventStoreHttpApi} from "./model/EventStoreHttpApi";
 import * as Model from "./model";
 import * as Containers from './containers';
+import * as Saga from './saga';
 
 export {
     Actions,
@@ -13,4 +14,5 @@ export {
     EventStoreHttpApi,
     Containers,
     Model,
+    Saga,
 }

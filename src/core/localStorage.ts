@@ -1,4 +1,4 @@
-import {Map} from "immutable";
+import {List, Map} from "immutable";
 import {MessageFlow} from "../MessageFlow/model";
 import {ElementsDefinition} from "cytoscape";
 import {Model as EventStoreModel} from '../EventStore/index';
@@ -41,13 +41,31 @@ export const loadWatchers = (): Map<string, EventStoreModel.Watcher.Watcher> => 
             return Map({});
         }
 
-        const watchersArr: EventStoreModel.Watcher.WatcherType[] = JSON.parse(serializedWatchers);
+        const watchersArr: {
+            watcherId: string,
+            watcherName: string,
+            streams: any[] | List<EventStoreModel.Stream.StreamName>,
+            filters: any[] | List<EventStoreModel.Filter.StreamFilterGroup>,
+            recordedEvents: any[] | List<EventStoreModel.Event.DomainEvent>,
+        }[] = JSON.parse(serializedWatchers);
         let watchersMap: Map<string, EventStoreModel.Watcher.Watcher> = Map({});
 
-        watchersArr.forEach(watcherData => watchersMap = watchersMap.set(
-            watcherData.watcherId,
-            new EventStoreModel.Watcher.Watcher(watcherData)
-        ));
+        //@TODO: Refactor to use a record factory
+        watchersArr.forEach(watcherData => {
+            watcherData.streams = List(watcherData.streams);
+            watcherData.filters = List(watcherData.filters).map((filterGroupData: any) => {
+                filterGroupData.filters = List(filterGroupData.filters).map(
+                    (filterData: any) => new EventStoreModel.Filter.StreamFilter(filterData)
+                )
+                return new EventStoreModel.Filter.StreamFilterGroup(filterGroupData)
+            }) as List<EventStoreModel.Filter.StreamFilterGroup>
+
+            watcherData.recordedEvents = List(watcherData.recordedEvents).map((eventData: any) => {
+                return new EventStoreModel.Event.DomainEvent(eventData)
+            }) as List<EventStoreModel.Event.DomainEvent>;
+
+            watchersMap = watchersMap.set(watcherData.watcherId, new EventStoreModel.Watcher.Watcher(watcherData as EventStoreModel.Watcher.WatcherType))
+        });
 
         return watchersMap;
     } catch (err) {

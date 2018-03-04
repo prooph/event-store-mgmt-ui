@@ -4,7 +4,7 @@ import {State} from "../../reducer";
 import {Query} from "../actions";
 import {Stream, EventStore} from '../model';
 
-const mapStreamResponseData = (response: EventStore.StreamResponseType ): EventStore.StreamResponse => {
+export const mapStreamResponseData = (response: EventStore.StreamResponseType ): EventStore.StreamResponse => {
     return new EventStore.StreamResponse(response);
 }
 

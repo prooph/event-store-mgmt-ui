@@ -1,3 +1,13 @@
 /*******************************
          Site Overrides
 *******************************/
+
+.ui.inverted.red.buttons .button,
+.ui.inverted.red.button {
+  color: @red;
+  box-shadow: 0px 0px 0px 2px @red inset !important;
+}
+
+.ui.inverted.red.button:hover {
+  background-color: @red;
+}

@@ -1,3 +1,13 @@
 /*******************************
          Site Overrides
 *******************************/
+
+.ui.toggle.checkbox.watcher input:checked ~ .box:before,
+.ui.toggle.checkbox.watcher input:checked ~ label:before {
+  background-color: @red !important;
+}
+
+.ui.toggle.checkbox.watcher .box:after,
+.ui.toggle.checkbox.watcher label:after {
+  border: 1px solid @lightGrey
+}

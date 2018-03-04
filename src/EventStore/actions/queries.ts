@@ -6,6 +6,7 @@ import {EventStoreHttpApi, StreamResponseType} from "../model/EventStoreHttpApi"
 export const GET_INITIAL_STREAM_LIST = 'GET_INITIAL_STREAM_LIST';
 export const GET_LATEST_STREAM_EVENTS = 'GET_LATEST_STREAM_EVENTS';
 export const GET_OLDER_STREAM_EVENTS = 'GET_OLDER_STREAM_EVENTS';
+export const GET_NEWER_STREAM_EVENTS = 'GET_NEWER_STREAM_EVENTS';
 export const GET_FILTERED_STREAM_EVENTS = 'GET_FILTERED_STREAM_EVENTS';
 export const EmptyStreamErrorCodes = [400, 404];
 
@@ -39,6 +40,22 @@ export function getOlderStreamEvents(
         GET_OLDER_STREAM_EVENTS,
         {streamName, errorCodeWhitelist: EmptyStreamErrorCodes}
         );
+}
+
+export interface GetNewerStreamEvents extends WebDataAction<StreamResponseType, {streamName: Stream.StreamName} & ErrorCodeWhitelist> {}
+
+export function getNewerStreamEvents(
+    httpApi: EventStoreHttpApi,
+    streamName: string,
+    event: Event.DomainEvent,
+    limit?: number): SendHttpRequest<{streamName: Stream.StreamName} & ErrorCodeWhitelist> {
+    limit = limit || 10;
+    const request = {'url': httpApi.getNewerEvents(streamName, event, limit)};
+    return sendHttpRequest<{streamName: Stream.StreamName} & ErrorCodeWhitelist>(
+        request,
+        GET_NEWER_STREAM_EVENTS,
+        {streamName, errorCodeWhitelist: EmptyStreamErrorCodes}
+    );
 }
 
 interface FilteredMetadata {streamName: Stream.StreamName, filters: List<Filter.StreamFilter>};

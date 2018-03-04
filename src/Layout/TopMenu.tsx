@@ -25,7 +25,7 @@ const TopMenu = pure((props: any) => {
         </MenuItem>
         <MenuItem as={NavLink} to={Routes.watchersPath.link(props.selectedWatcher)}
                   activeClassName="active">
-            <Icon name='eye' color='green' />
+            <Icon name='eye' color='red' />
             {props.t('app.sidemenu.watchers')}
         </MenuItem>
         <MenuItem as={NavLink} to={Routes.messageFlowPath}

@@ -66,7 +66,7 @@ export class EventStoreHttpApi {
     }
 
     getNewerEvents(streamName: StreamName, event: DomainEvent, limit: number): string {
-        return this.baseUrl + `/stream/${streamName}/${event.streamPosition()}/forward/$W{limit}`;
+        return this.baseUrl + `/stream/${streamName}/${event.streamPosition() + 1}/forward/${limit}`;
     }
 
     getFilteredEvents(streamName: StreamName, filters: List<Filter.StreamFilter>, limit: number): string {

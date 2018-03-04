@@ -33,6 +33,8 @@
             "watcher": {
                 "title": "Watch",
                 "no_watcher_selected": "Wähle einen Watcher aus der Liste rechts, um Details zu sehen.",
+                "activate_watch_mode": "Watcher aktivieren",
+                "deactivate_watch_mode": "Watcher deaktivieren",
                 "modal": {
                     "title": "Erstelle einen Stream Watcher",
                     "watcher_name": "Name des Watchers",

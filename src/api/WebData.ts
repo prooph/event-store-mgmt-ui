@@ -1,3 +1,4 @@
+import {Channel} from "redux-saga";
 import {call, put} from "redux-saga/effects";
 import {AxiosPromise, AxiosRequestConfig} from 'axios';
 import {Action} from "redux";
@@ -58,14 +59,14 @@ export interface ErrorCodeWhitelist {
 }
 
 // noinspection TypeScriptValidateTypes
-export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<ErrorCodeWhitelist & TMeta> ) {
+export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<ErrorCodeWhitelist & TMeta>, chan?: Channel<Action> ) {
 
-  yield put( responseAction( action.responseAction, { type: "loading" }, action.metadata ) );
+  yield tryPutOnChannel(responseAction( action.responseAction, { type: "loading" }, action.metadata ), chan );
 
   try {
     let data = yield call( fetchStatusWrapper, action.request);
 
-    yield put( responseAction( action.responseAction, { type: "success", data: data }, action.metadata ) );
+    yield tryPutOnChannel( responseAction( action.responseAction, { type: "success", data: data }, action.metadata ), chan );
   } catch ( err ) {
     let msg = "Unknown Error";
     let code = 500;
@@ -85,7 +86,7 @@ export function* sendHttpRequestFlow<TMeta> ( action: SendHttpRequest<ErrorCodeW
         yield put(Notify.Command.error("Webdata error", errMsg));
     }
 
-    yield put( responseAction( action.responseAction, { type: "error", msg: errMsg, errorCode: code}, action.metadata ) );
+    yield tryPutOnChannel( responseAction( action.responseAction, { type: "error", msg: errMsg, errorCode: code}, action.metadata ), chan );
   }
 }
 
@@ -117,4 +118,12 @@ export function fetchStatusWrapper ( request: AxiosRequestConfig ): AxiosPromise
 function isSuccessResponse(status: number): boolean
 {
   return status >= 200 && status < 300;
+}
+
+function* tryPutOnChannel(action: Action, chan?: Channel<Action>) {
+  if(chan) {
+    yield put(chan, action);
+  } else {
+    yield put(action);
+  }
 }

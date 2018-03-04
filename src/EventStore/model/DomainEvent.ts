@@ -1,4 +1,4 @@
-import {fromJS, Map, Record} from 'immutable';
+import {fromJS, Map, Record, List} from 'immutable';
 import * as moment from 'moment';
 
 export interface DomainEventType {
@@ -30,6 +30,32 @@ export class DomainEvent extends Record({
 
     messageName(): string {
         return this.get('message_name');
+    }
+
+    shortMessageName(len?: number): string {
+        if(typeof len === 'undefined') {
+            len = 50;
+        }
+
+        if(this.messageName().length > len) {
+            let messageName = this.messageName();
+
+            let parts = List(messageName.split('\\'));
+
+            if(parts.size === 1) {
+                parts = List(messageName.split('.'));
+            }
+
+            messageName = parts.last();
+
+            if(messageName.length > len) {
+                messageName = messageName.substr(0, len - 3) + '...';
+            }
+
+            return messageName;
+        }
+
+        return this.messageName();
     }
 
     uuid(): string {

@@ -4,7 +4,7 @@ import {WATCHERS_PATH} from '../reducers';
 import {Map} from "immutable";
 import {Watcher} from "../model";
 
-export const watchersSelector = (state: State, props: any) => state.getIn(WATCHERS_PATH, Map({}))
+export const watchersSelector = (state: State, props?: any) => state.getIn(WATCHERS_PATH, Map({}))
 
 export const makeGetWatchers = (): (state: State, props: any) => Map<string, Watcher.Watcher> => {
     return createSelector(

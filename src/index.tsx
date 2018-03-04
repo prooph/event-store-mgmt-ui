@@ -101,9 +101,9 @@ store.subscribe(() => {
     saveWatchers(watchers);
 })
 
-sagaMiddleware.run(rootSaga as any);
-
 const httpApi = new EventStoreHttpApi('/api/v1');
+
+sagaMiddleware.run(rootSaga as any, httpApi);
 
 store.dispatch(EventStoreActions.Query.getInitialStreamList(httpApi));
 

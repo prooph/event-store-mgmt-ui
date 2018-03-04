@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { pure } from 'recompose';
-import {Menu, MenuItem} from 'semantic-ui-react';
+import {Menu, MenuItem, Icon} from 'semantic-ui-react';
 import {Map} from "immutable";
 import {Watcher} from "../model";
 import {NavLink} from "react-router-dom";
@@ -27,6 +27,7 @@ export const WatcherNav = pure( (props: WatcherNavProps) => {
                 onClick={() => props.onWatcherSelected(watcher.id())}
             >
                 {watcher.name()}
+                { watcher.isWatching() && <Icon name='eye' color='red' /> }
             </MenuItem>
         );
     });

@@ -1,12 +1,15 @@
 import {fromJS, Map} from "immutable";
 import {Action} from "redux";
 import {Query, Cmd} from "../actions";
+import {mapStreamResponseData} from "./applyStreamEvents";
 import applyStreamListChanges from "./applyStreamListChanges";
 import applyStreamEvents from "./applyStreamEvents";
 import applyFilteredStreamEvents from "./applyFilteredStreamEvents";
 import applyShowFilterBox from "./applyShowFilterBox";
 import applyAddWatcher from "./applyAddWatcher";
 import applyRemoveWatcher from "./applyRemoveWatcher"
+import applyToggleWatcher from "./applyToggleStreamWatcher";
+import applyRecordWatcherEvent from "./applyRecordWatcherEvent";
 import {Stream, Watcher} from "../model";
 
 const initialState = fromJS({
@@ -32,6 +35,7 @@ function getSelectedWatcher(action: Cmd.SetSelectedWatcher): Watcher.Id {
 
 export const PATH = 'event-store';
 export const WATCHERS_PATH = ['event-store', 'watcherList'];
+export const mapStreamResponse = mapStreamResponseData;
 
 export default (state = initialState, action: Action) => {
     switch (action.type) {
@@ -50,8 +54,12 @@ export default (state = initialState, action: Action) => {
             return state.set("streamList", applyShowFilterBox(state.get("streamList", initialState.get("streamList")), action));
         case Cmd.ADD_STREAM_WATCHER:
             return state.set("watcherList", applyAddWatcher(state.get("watcherList", Map({})), action));
+        case Cmd.TOGGLE_STREAM_WATCHER:
+            return state.set("watcherList", applyToggleWatcher(state.get("watcherList", Map({})), action));
         case Cmd.REMOVE_STREAM_WATCHER:
             return state.set("watcherList", applyRemoveWatcher(state.get("watcherList", Map({})), action));
+        case Cmd.RECORD_WATCHER_EVENT:
+            return state.set("watcherList", applyRecordWatcherEvent(state.get("watcherList", Map({})), action));
         default:
             return state;
     }

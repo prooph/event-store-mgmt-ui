@@ -20,7 +20,7 @@ i.refresh.event_store.active {
 
 i.filter.watcher.active,
 i.filter.watcher:hover {
-    color: @green;
+    color: @red;
 }
 
 .ui.divider.event_store:not(.vertical):not(.horizontal) {
@@ -29,8 +29,8 @@ i.filter.watcher:hover {
 }
 
 .ui.divider.watcher:not(.vertical):not(.horizontal) {
-    border-top: 1px solid @green;
-    border-bottom: 1px solid @green;
+    border-top: 1px solid @red;
+    border-bottom: 1px solid @red;
 }
 
 .ui.secondary.vertical.pointing.menu.event_store .active.item {
@@ -38,7 +38,7 @@ i.filter.watcher:hover {
 }
 
 .ui.secondary.vertical.pointing.menu.watcher .active.item {
-    border-color: @green;
+    border-color: @red;
 }
 
 .ui.basic.segment.filterbox,

@@ -1,6 +1,6 @@
 import {List, Record, fromJS} from "immutable";
 import {StreamName} from "./Stream";
-import {StreamFilter} from "./StreamFilter";
+import {StreamFilterGroup} from "./StreamFilter";
 import {DomainEvent} from "./DomainEvent";
 
 export type Id = string;
@@ -10,12 +10,13 @@ export interface WatcherType {
     watcherId: Id,
     watcherName: Name,
     streams: List<StreamName>,
-    filters: List<StreamFilter>,
+    filters: List<StreamFilterGroup>,
     watching?: boolean,
     recordedEvents?: List<DomainEvent>
     showFilterBox?: boolean,
 }
 
+//Note: If you change record structure you have to align deserialization in src/core/localStorage.ts!!!
 export class Watcher extends Record({
     watcherId: '',
     watcherName: 'unknown watcher',
@@ -35,6 +36,7 @@ export class Watcher extends Record({
         this.isWatching = this.isWatching.bind(this)
         this.recordedEvents = this.recordedEvents.bind(this)
         this.showFilterBox = this.showFilterBox.bind(this)
+        this.isInterestedIn = this.isInterestedIn.bind(this)
     }
 
     id(): Id {
@@ -49,7 +51,7 @@ export class Watcher extends Record({
         return this.get('streams')
     }
 
-    filters(): List<StreamFilter> {
+    filters(): List<StreamFilterGroup> {
         return this.get('filters')
     }
 
@@ -61,7 +63,42 @@ export class Watcher extends Record({
         return this.get('recordedEvents')
     }
 
+    recordEvent(event: DomainEvent): Watcher {
+        let thisEvents = this.recordedEvents();
+
+        if(!thisEvents.find(lEvent => lEvent.uuid() === event.uuid())) {
+            thisEvents = thisEvents.unshift(event)
+        } else {
+            return this;
+        }
+
+        thisEvents = thisEvents.sort((a, b) => {
+            if(a.createdAt() === b.createdAt()) {
+                return 0;
+            }
+
+            return a.createdAt() > b.createdAt()? 1 : -1;
+        }) as List<DomainEvent>
+
+        return this.set('recordedEvents', thisEvents) as Watcher;
+    }
+
     showFilterBox(): boolean {
         return this.get('showFilterBox')
+    }
+
+    isInterestedIn(streamName: StreamName, event: DomainEvent): boolean {
+        if(!this.streams().contains(streamName)) {
+            return false;
+        }
+
+        let matched = false;
+
+        this.filters().forEach(filterGroup => {
+            matched = filterGroup.groupMatch(event);
+            return !matched;
+        });
+
+        return matched;
     }
 }

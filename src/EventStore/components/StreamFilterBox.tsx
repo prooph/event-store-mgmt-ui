@@ -90,7 +90,6 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
     }
 
     handleOperatorChanged = (index: number, operator: string) => {
-        console.log("operator ", operator)
         this.setState({
             dirtyFilters: updateFilter(this.state.dirtyFilters, index, 'operator', operator),
         })
@@ -141,7 +140,6 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
     }
 
     handleKeyPress = (event: KeyboardEvent) => {
-        console.log("key press", event)
         if(event.ctrlKey && event.key === 'Enter') {
             this.submitFiltersIfValid();
         }
@@ -186,8 +184,9 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
                                     t={this.props.t}/>
                 <Popup
                     trigger={<Button
-                        color='green'
+                        color='red'
                         circular
+                        inverted
                         disabled={this.state.dirtyFilters.count() === 0}
                         icon='eye'
                         size='tiny'

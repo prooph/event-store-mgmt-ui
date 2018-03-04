@@ -14,6 +14,7 @@ export interface WatchersLayoutProps  extends RouteComponentProps<{watcherId?: W
     watchers: Map<string, Watcher.Watcher>,
     onWatcherSelected: (watcherId: Watcher.Id) => void,
     onRemoveWatcher: (watcherId: Watcher.Id) => void,
+    onToggleWatcher: (watcherId: Watcher.Id, isWatching: boolean) => void,
 }
 
 export class WatchersLayout extends React.Component<WatchersLayoutProps, {contextRef: any}> {
@@ -40,6 +41,7 @@ export class WatchersLayout extends React.Component<WatchersLayoutProps, {contex
                 watcher={this.getWatcher(watcherId)}
                 style={{minHeight: window.innerHeight}}
                 onRemoveWatcher={this.props.onRemoveWatcher}
+                onToggleWatcher={this.props.onToggleWatcher}
             />
             :
             <NoWatcherSelected t={this.props.t}/>;

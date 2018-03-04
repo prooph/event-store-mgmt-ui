@@ -1,8 +1,6 @@
-import {fromJS} from "immutable";
 import {Action} from "redux";
 import {State} from "../../reducer";
 import {Cmd} from "../actions";
-import {Watcher} from "../model";
 
 const onRemoveStreamWatcher = (state: State, action: Cmd.RemoveStreamWatcher): State => {
     return state.remove(action.watcherId);
