@@ -60,13 +60,13 @@ export function getNewerStreamEvents(
 
 interface FilteredMetadata {streamName: Stream.StreamName, filters: List<Filter.StreamFilter>};
 
-export interface GetFilteredStreamEvents extends WebDataAction<StreamResponseType, FilteredMetadata> {}
+export interface GetFilteredStreamEvents extends WebDataAction<StreamResponseType, FilteredMetadata & ErrorCodeWhitelist> {}
 
 export function getFilteredStreamEvents(
     httpApi: EventStoreHttpApi,
     streamName: Stream.StreamName,
-    filters: List<Filter.StreamFilter>, limit?: number): SendHttpRequest<FilteredMetadata> {
+    filters: List<Filter.StreamFilter>, limit?: number): SendHttpRequest<FilteredMetadata & ErrorCodeWhitelist> {
     limit = limit || 10;
     const request = {'url': httpApi.getFilteredEvents(streamName, filters, limit)};
-    return sendHttpRequest<FilteredMetadata>(request, GET_FILTERED_STREAM_EVENTS, {streamName, filters});
+    return sendHttpRequest<FilteredMetadata & ErrorCodeWhitelist>(request, GET_FILTERED_STREAM_EVENTS, {streamName, filters, errorCodeWhitelist: EmptyStreamErrorCodes});
 }

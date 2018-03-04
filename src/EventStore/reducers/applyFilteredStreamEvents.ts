@@ -4,12 +4,17 @@ import {State} from "../../reducer";
 import {Query} from "../actions";
 import {Stream} from '../model';
 import {onGetStreamEvents, getStream, replaceStream} from "./applyStreamEvents";
+import {WebData} from '../../api';
 
 function onGetFilteredStreamEvents(state: State, action: Query.GetFilteredStreamEvents): State {
     state = onGetStreamEvents(state, action, false);
 
     const streams: List<Stream.Stream> = state.get("streams") as List<Stream.Stream>;
-    const stream: Stream.Stream = getStream(streams, action.metadata.streamName);
+    let stream: Stream.Stream = getStream(streams, action.metadata.streamName);
+
+    if(WebData.isError(action.webData) && action.webData.errorCode === 400) {
+        stream = stream.clearEvents();
+    }
 
     return state.set('streams', replaceStream(streams, stream.replaceFilters(action.metadata.filters)));
 }

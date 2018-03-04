@@ -32,6 +32,7 @@ export class Stream extends Record({
         this.lastErrorCode = this.lastErrorCode.bind(this);
         this.showFilterBox = this.showFilterBox.bind(this);
         this.events =  this.events.bind(this);
+        this.clearEvents = this.clearEvents.bind(this);
         this.filters = this.filters.bind(this);
     }
 
@@ -53,6 +54,10 @@ export class Stream extends Record({
 
     events(): List<DomainEvent> {
         return this.get('events')
+    }
+
+    clearEvents(): Stream {
+        return this.set('events', fromJS([])) as Stream;
     }
 
     canHaveOlderEvents(): boolean {

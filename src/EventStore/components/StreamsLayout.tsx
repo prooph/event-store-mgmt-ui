@@ -26,8 +26,8 @@ const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName):
     return stream || new Stream.Stream({streamName})
 }
 
-export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextRef: any, endOfStream: boolean}> {
-    state = {contextRef: undefined, endOfStream: false}
+export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextRef: any}> {
+    state = {contextRef: undefined}
 
     //Internal cache, not part of state bc component should not rerender if changed internally
     unsavedFilters: boolean
@@ -51,6 +51,14 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
         this.setState({ contextRef })
     }
 
+    handleShowFilterBox = (streamName: Stream.StreamName, show: boolean): void => {
+        if(!show) {
+            this.unsavedFilters = false;
+        }
+
+        this.props.onShowFilterBox(streamName, show);
+    }
+
     handleChangeUnsavedFilters = (unsavedFilters: boolean) => {
         this.unsavedFilters = unsavedFilters
     }
@@ -65,8 +73,6 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
 
         if(stream.canHaveOlderEvents()) {
             this.props.onGetOlderEvents(this.props.httpApi, streamName, stream.events().last(), stream.filters())
-        } else {
-            this.setState({endOfStream: true})
         }
     }
 
@@ -92,7 +98,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 t={this.props.t}
                 stream={getStream(this.props.streams, streamName)}
                 style={{minHeight: window.innerHeight}}
-                onShowFilterBox={this.props.onShowFilterBox}
+                onShowFilterBox={this.handleShowFilterBox}
                 onRefresh={this.handleOnRefresh}
                 onFilterSubmit={this.handleFilterSubmit}
                 onChangeUnsavedFilters={this.handleChangeUnsavedFilters}
@@ -107,7 +113,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 <Segment>
                     <Visibility onBottomVisible={this.handleBottomVisible} once={false}>
                     {content}
-                    {this.state.endOfStream &&
+                    {!getStream(this.props.streams, streamName).canHaveOlderEvents() &&
                     <Message color="grey">{ this.props.t('app.eventStore.streams.end') }</Message>
                     }
                     </Visibility>
