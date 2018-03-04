@@ -113,7 +113,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 <Segment>
                     <Visibility onBottomVisible={this.handleBottomVisible} once={false}>
                     {content}
-                    {!getStream(this.props.streams, streamName).canHaveOlderEvents() &&
+                    {streamName && !getStream(this.props.streams, streamName).canHaveOlderEvents() &&
                     <Message color="grey">{ this.props.t('app.eventStore.streams.end') }</Message>
                     }
                     </Visibility>
