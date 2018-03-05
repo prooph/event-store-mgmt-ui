@@ -1,3 +1,7 @@
 /*******************************
          Site Overrides
 *******************************/
+
+.modal.watcher input:focus {
+  border-color: @red;
+}

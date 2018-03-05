@@ -13,7 +13,8 @@ export interface StreamFilterProps extends InjectedTranslateProps {
     onOperatorChanged: (index: number, operator: Filter.FilterOperator) => void,
     onValueChanged: (index: number, value: Filter.FilterValue) => void,
     onRemoveFilter: (index: number) => void,
-    hasError: boolean
+    hasError: boolean,
+    autoFocus?: boolean,
 }
 
 const operatorOptions = [
@@ -38,13 +39,15 @@ export const StreamFilter = pure((props: StreamFilterProps) => {
 
     const propertyOptions = props.existingFilterProps.map(prop => <option key={prop} value={prop} />).toJS();
 
+    const autoFocus = typeof props.autoFocus === 'undefined'? true : props.autoFocus;
+
     return <Form.Group>
         <Form.Input
             fluid
             placeholder={props.t('app.eventStore.filter.property')}
             width={7}
             list='filterProps'
-            autoFocus
+            autoFocus={autoFocus}
             value={props.filter.property()}
             error={props.hasError && !props.filter.isValid('property')}
             onChange={(event: any) => props.onPropertyChanged(props.index, event.target.value)}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Map} from "immutable";
+import {Map, List} from "immutable";
 import {Grid, Segment, Sticky, Rail, Visibility, Message} from 'semantic-ui-react';
 import {InjectedTranslateProps} from "react-i18next";
 import {RouteComponentProps} from "react-router";
@@ -12,9 +12,12 @@ import {Redirect} from "react-router-dom";
 export interface WatchersLayoutProps  extends RouteComponentProps<{watcherId?: Watcher.Id, eventId?: string}>, InjectedTranslateProps {
     baseUrl: string,
     watchers: Map<string, Watcher.Watcher>,
+    availableStreams: List<Stream.StreamName>,
     onWatcherSelected: (watcherId: Watcher.Id) => void,
     onRemoveWatcher: (watcherId: Watcher.Id) => void,
     onToggleWatcher: (watcherId: Watcher.Id, isWatching: boolean) => void,
+    onShowFilterBox: (watcherId: Watcher.Id, show: boolean) => void,
+    onFilterSubmit: (watcherId: Watcher.Id, filters: List<Filter.StreamFilterGroup>) => void,
 }
 
 export class WatchersLayout extends React.Component<WatchersLayoutProps, {contextRef: any}> {
@@ -39,10 +42,13 @@ export class WatchersLayout extends React.Component<WatchersLayoutProps, {contex
             <WatcherViewer
                 t={this.props.t}
                 watcher={this.getWatcher(watcherId)}
+                availableStreams={this.props.availableStreams}
                 activeEventId={eventId}
                 style={{minHeight: window.innerHeight}}
                 onRemoveWatcher={this.props.onRemoveWatcher}
                 onToggleWatcher={this.props.onToggleWatcher}
+                onShowFilterBox={this.props.onShowFilterBox}
+                onFilterSubmit={this.props.onFilterSubmit}
             />
             :
             <NoWatcherSelected t={this.props.t}/>;

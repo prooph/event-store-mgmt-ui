@@ -11,6 +11,7 @@ import {Query, Cmd} from '../actions';
 
 interface StateProps extends InjectedTranslateProps {
     streams: List<Stream.Stream>,
+    existingWatchers: List<Watcher.Watcher>,
 }
 
 interface PropsToDispatch {
@@ -20,6 +21,7 @@ interface PropsToDispatch {
     onStreamSelected: (streamName: Stream.StreamName) => void,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
     onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
+    onAppendToWatcher: (watcherId: Watcher.Id, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
 interface OwnProps extends RouteComponentProps<{streamName?: Stream.StreamName}> {
@@ -35,6 +37,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
         onStreamSelected: Cmd.setSelectedStream,
         onShowFilterBox: Cmd.showFilterBox,
         onAddWatcher: Cmd.addStreamWatcher,
+        onAppendToWatcher: Cmd.appendFiltersToWatcher,
     } as any, dispatch);
 };
 

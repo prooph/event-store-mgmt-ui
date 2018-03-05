@@ -2,6 +2,8 @@ import {List, Record, fromJS} from "immutable";
 import {StreamName} from "./Stream";
 import {StreamFilterGroup} from "./StreamFilter";
 import {DomainEvent} from "./DomainEvent";
+import {eventProperties, PREFIX_META} from "./StreamFilter";
+import * as _ from 'lodash';
 
 export type Id = string;
 export type Name = string;
@@ -37,6 +39,7 @@ export class Watcher extends Record({
         this.recordedEvents = this.recordedEvents.bind(this)
         this.showFilterBox = this.showFilterBox.bind(this)
         this.isInterestedIn = this.isInterestedIn.bind(this)
+        this.suggestFilterProperties = this.suggestFilterProperties.bind(this)
     }
 
     id(): Id {
@@ -95,10 +98,29 @@ export class Watcher extends Record({
         let matched = false;
 
         this.filters().forEach(filterGroup => {
-            matched = filterGroup.groupMatch(event);
+            matched = filterGroup.streamName() === streamName && filterGroup.groupMatch(event);
             return !matched;
         });
 
         return matched;
+    }
+
+    suggestFilterProperties(): List<string> {
+        let props = eventProperties.toArray();
+
+        this.recordedEvents().forEach(event => {
+            event.metadata().forEach((val,key) => {
+                if(key === '_position') {
+                    return;
+                }
+                key = `${PREFIX_META}.${key}`;
+
+                if(!_.includes(props, key)) {
+                    props.push(key);
+                }
+            })
+        })
+
+        return List.of(...props);
     }
 }

@@ -7,9 +7,12 @@ import applyStreamEvents from "./applyStreamEvents";
 import applyFilteredStreamEvents from "./applyFilteredStreamEvents";
 import applyShowFilterBox from "./applyShowFilterBox";
 import applyAddWatcher from "./applyAddWatcher";
+import applyAppendFiltersToWatcher from "./applyAppendFiltersToWatcher";
 import applyRemoveWatcher from "./applyRemoveWatcher"
 import applyToggleWatcher from "./applyToggleStreamWatcher";
 import applyRecordWatcherEvent from "./applyRecordWatcherEvent";
+import applyShowWatcherFilterBox from "./applyShowWatcherFilterBox";
+import applyUpdateWatcherFilters from "./applyUpdateWatcherFilters";
 import {Stream, Watcher} from "../model";
 
 const initialState = fromJS({
@@ -54,12 +57,18 @@ export default (state = initialState, action: Action) => {
             return state.set("streamList", applyShowFilterBox(state.get("streamList", initialState.get("streamList")), action));
         case Cmd.ADD_STREAM_WATCHER:
             return state.set("watcherList", applyAddWatcher(state.get("watcherList", Map({})), action));
+        case Cmd.APPEND_FILTERS_TO_WATCHER:
+            return state.set("watcherList", applyAppendFiltersToWatcher(state.get("watcherList", Map({})), action));
         case Cmd.TOGGLE_STREAM_WATCHER:
             return state.set("watcherList", applyToggleWatcher(state.get("watcherList", Map({})), action));
         case Cmd.REMOVE_STREAM_WATCHER:
             return state.set("watcherList", applyRemoveWatcher(state.get("watcherList", Map({})), action));
         case Cmd.RECORD_WATCHER_EVENT:
             return state.set("watcherList", applyRecordWatcherEvent(state.get("watcherList", Map({})), action));
+        case Cmd.SHOW_WATCHER_FILTER_BOX:
+            return state.set("watcherList", applyShowWatcherFilterBox(state.get("watcherList", Map({})), action));
+        case Cmd.UPDATE_WATCHER_FILTERS:
+            return state.set("watcherList", applyUpdateWatcherFilters(state.get("watcherList", Map({})), action));
         default:
             return state;
     }

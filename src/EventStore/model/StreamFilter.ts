@@ -32,12 +32,6 @@ export interface StreamFilterType {
     value?: FilterValue
 }
 
-export interface StreamFilterGroupType {
-    groupId: GroupId,
-    streamName: StreamName,
-    filters: List<StreamFilter>,
-}
-
 export const eventProperties = fromJS([
     PREFIX_EVENT + '.uuid',
     PREFIX_EVENT + '.created_at',
@@ -96,9 +90,15 @@ export class StreamFilter extends Record({
     }
 }
 
+export interface StreamFilterGroupType {
+    groupId: GroupId,
+    filters: List<StreamFilter>,
+    streamName?: StreamName,
+}
+
 export class StreamFilterGroup extends Record({
     groupId: 'unknown',
-    streamName: 'unknown',
+    streamName: '',
     filters: fromJS([]),
 }) {
     constructor(data: StreamFilterGroupType) {
@@ -107,6 +107,7 @@ export class StreamFilterGroup extends Record({
         this.groupId = this.groupId.bind(this);
         this.streamName = this.streamName.bind(this);
         this.filters = this.filters.bind(this);
+        this.isValid = this.isValid.bind(this);
         this.groupMatch = this.groupMatch.bind(this);
     }
 
@@ -120,6 +121,16 @@ export class StreamFilterGroup extends Record({
 
     filters(): List<StreamFilter> {
         return this.get('filters')
+    }
+
+    isValid(): boolean {
+        if(this.streamName() === '') {
+            return false;
+        }
+
+        const invalidFilters = this.filters().filterNot(filter => filter.isValid());
+
+        return invalidFilters.count() === 0;
     }
 
     groupMatch (event: DomainEvent): boolean {

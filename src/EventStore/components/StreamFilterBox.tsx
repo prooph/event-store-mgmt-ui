@@ -3,16 +3,18 @@ import {Form, Segment, Icon, Button, Popup} from 'semantic-ui-react';
 import {InjectedTranslateProps} from "react-i18next";
 import {StreamFilter} from "./StreamFilter";
 import {fromJS, List} from "immutable";
-import {Filter, Watcher, Stream} from "../model";
+import {Filter, Watcher} from "../model";
 import {CreateWatcherModal} from "./CreateWatcherModal";
 
 export interface StreamFilterBoxProps extends InjectedTranslateProps {
     existingFilterProps: List<string>,
+    existingWatchers: List<Watcher.Watcher>,
     filters: List<Filter.StreamFilter>,
     onFilterSubmit: (filters: List<Filter.StreamFilter>) => void,
     onClearFilter: () => void,
     onChangeUnsavedState: (unsavedFilters: boolean) => void,
     onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name) => void,
+    onAppendToWatcher: (watcherId: Watcher.Id) => void,
 }
 
 const emptyFilter = () => new Filter.StreamFilter({type: "metadata"})
@@ -126,11 +128,6 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
 
     handleCloseWatcherModal = () => this.setState({showWatcherModal: false})
 
-    handleSubmitWatcher = (watcherId: Watcher.Id, watcherName: Watcher.Name) => {
-        this.props.onAddWatcher(watcherId, watcherName);
-        this.setState({showWatcherModal: false})
-    }
-
 
     handleClearFilter = (event: React.SyntheticEvent<HTMLButtonElement>) => {
         this.props.onClearFilter();
@@ -179,8 +176,10 @@ export class StreamFilterBox extends React.Component<StreamFilterBoxProps, State
                     position='bottom center'
                 />
                 <CreateWatcherModal open={this.state.showWatcherModal}
+                                    availableWatchers={this.props.existingWatchers}
                                     onClose={this.handleCloseWatcherModal}
-                                    onSubmitWatcher={this.handleSubmitWatcher}
+                                    onSubmitWatcher={this.props.onAddWatcher}
+                                    onAppendToWatcher={this.props.onAppendToWatcher}
                                     t={this.props.t}/>
                 <Popup
                     trigger={<Button

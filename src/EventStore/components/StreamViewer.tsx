@@ -9,11 +9,13 @@ import {fromJS, List} from "immutable";
 export interface StreamViewerProps extends InjectedTranslateProps {
     stream: Stream.Stream,
     style?: any,
+    existingWatchers: List<Watcher.Watcher>,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
     onRefresh: (stream: Stream.Stream) => void,
     onFilterSubmit: (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onChangeUnsavedFilters: (unsaved: boolean) => void,
     onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
+    onAppendToWatcher: (watcherId: Watcher.Id, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
 export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
@@ -27,6 +29,12 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
     handleOnAddWatcher = (watcherId: Watcher.Id, watcherName: Watcher.Name) => this.props.onAddWatcher(
         watcherId,
         watcherName,
+        this.props.stream.name(),
+        this.props.stream.filters()
+    );
+
+    handleOnAppendToWatcher = (watcherId: Watcher.Id) => this.props.onAppendToWatcher(
+        watcherId,
         this.props.stream.name(),
         this.props.stream.filters()
     );
@@ -72,10 +80,12 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
                     <StreamFilterBox
                         filters={this.props.stream.filters()}
                         existingFilterProps={this.props.stream.suggestFilterProperties()}
+                        existingWatchers={this.props.existingWatchers}
                         onFilterSubmit={this.handleFilterSubmit}
                         onClearFilter={() => this.props.onFilterSubmit(this.props.stream.name(), fromJS([]))}
                         onChangeUnsavedState={this.props.onChangeUnsavedFilters}
                         onAddWatcher={this.handleOnAddWatcher}
+                        onAppendToWatcher={this.handleOnAppendToWatcher}
                         t={this.props.t} />
                 </Segment>}
                 <Card fluid={true}>

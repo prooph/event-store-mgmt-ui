@@ -47,3 +47,21 @@ i.filter.watcher:hover {
 .ui.basic.segment.filterbox .ui.basic.button:focus {
     background-color: @darkWhite !important;
 }
+
+.filterbox.watcher .ui.selection.dropdown:focus,
+.filterbox.watcher .ui.selection.active.dropdown,
+.filterbox.watcher .ui.selection.active.dropdown .menu,
+.ui.form.watcher input:not([type]):focus,
+.ui.form.watcher input[type="date"]:focus,
+.ui.form.watcher input[type="datetime-local"]:focus,
+.ui.form.watcher input[type="email"]:focus,
+.ui.form.watcher input[type="number"]:focus,
+.ui.form.watcher input[type="password"]:focus,
+.ui.form.watcher input[type="search"]:focus,
+.ui.form.watcher input[type="tel"]:focus,
+.ui.form.watcher input[type="time"]:focus,
+.ui.form.watcher input[type="text"]:focus,
+.ui.form.watcher input[type="file"]:focus,
+.ui.form.watcher input[type="url"]:focus {
+    border-color: @red;
+}

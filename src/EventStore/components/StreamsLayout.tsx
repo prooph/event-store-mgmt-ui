@@ -12,12 +12,14 @@ export interface StreamsLayoutProps extends RouteComponentProps<{streamName?: St
     baseUrl: string,
     httpApi: EventStore.EventStoreHttpApi,
     streams: List<Stream.Stream>,
+    existingWatchers: List<Watcher.Watcher>,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
     onGetOlderEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, event: Event.DomainEvent, filters: List<Filter.StreamFilter>) => void,
     onGetLatestEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName) => void,
     onGetFilteredEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onStreamSelected: (streamName: Stream.StreamName) => void,
     onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
+    onAppendToWatcher: (watcherId: Watcher.Id, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
 const getStream = (streams: List<Stream.Stream>, streamName: Stream.StreamName): Stream.Stream => {
@@ -98,11 +100,13 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 t={this.props.t}
                 stream={getStream(this.props.streams, streamName)}
                 style={{minHeight: window.innerHeight}}
+                existingWatchers={this.props.existingWatchers}
                 onShowFilterBox={this.handleShowFilterBox}
                 onRefresh={this.handleOnRefresh}
                 onFilterSubmit={this.handleFilterSubmit}
                 onChangeUnsavedFilters={this.handleChangeUnsavedFilters}
                 onAddWatcher={this.props.onAddWatcher}
+                onAppendToWatcher={this.props.onAppendToWatcher}
             />
             :
             <NoStreamSelected t={this.props.t}/>;

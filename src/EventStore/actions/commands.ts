@@ -6,9 +6,12 @@ export const SET_SELECTED_STREAM = 'SET_SELECTED_STREAM';
 export const SET_SELECTED_WATCHER = 'SET_SELECTED_WATCHER';
 export const SHOW_FILTER_BOX = 'SHOW_FILTER_BOX';
 export const ADD_STREAM_WATCHER = 'ADD_STREAM_WATCHER';
+export const APPEND_FILTERS_TO_WATCHER = 'APPEND_FILTERS_TO_WATCHER';
 export const REMOVE_STREAM_WATCHER = 'REMOVE_STREAM_WATCHER';
 export const TOGGLE_STREAM_WATCHER = 'TOGGLE_STREAM_WATCHER';
 export const RECORD_WATCHER_EVENT = 'RECORD_WATCHER_EVENT';
+export const SHOW_WATCHER_FILTER_BOX = 'SHOW_WATCHER_FILTER_BOX';
+export const UPDATE_WATCHER_FILTERS = 'UPDATE_WATCHER_FILTERS';
 
 export interface SetSelectedStream extends Action {
     selectedStream: Stream.StreamName
@@ -66,6 +69,24 @@ export function addStreamWatcher(
     }
 }
 
+export interface AppendFiltersToWatcher extends Action {
+    watcherId: Watcher.Id,
+    streamName: Stream.StreamName,
+    filters: List<Filter.StreamFilter>
+}
+
+export function appendFiltersToWatcher(
+    watcherId: Watcher.Id,
+    streamName: Stream.StreamName,
+    filters: List<Filter.StreamFilter>): AppendFiltersToWatcher {
+    return {
+        watcherId,
+        streamName,
+        filters,
+        type: APPEND_FILTERS_TO_WATCHER
+    }
+}
+
 export interface RemoveStreamWatcher extends Action {
     watcherId: Watcher.Id,
 }
@@ -100,5 +121,31 @@ export function recordWatcherEvent(watcherId: Watcher.Id, event: Event.DomainEve
         watcherId,
         event,
         type: RECORD_WATCHER_EVENT
+    }
+}
+
+export interface ShowWatcherFilterBox extends Action {
+    watcherId: Watcher.Id,
+    show: boolean,
+}
+
+export function showWatcherFilterBox(watcherId: Watcher.Id, show: boolean): ShowWatcherFilterBox {
+    return {
+        watcherId,
+        show,
+        type: SHOW_WATCHER_FILTER_BOX,
+    }
+}
+
+export  interface UpdateWatcherFilters extends Action {
+    watcherId: Watcher.Id,
+    filters: List<Filter.StreamFilterGroup>,
+}
+
+export function updateWatcherFilters(watcherId: Watcher.Id, filters: List<Filter.StreamFilterGroup>): UpdateWatcherFilters {
+    return {
+        watcherId,
+        filters,
+        type: UPDATE_WATCHER_FILTERS
     }
 }

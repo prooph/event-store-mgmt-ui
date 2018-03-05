@@ -36,13 +36,23 @@
                 "activate_watch_mode": "Watcher aktivieren",
                 "deactivate_watch_mode": "Watcher deaktivieren",
                 "no_recorded_events": "Es wurden noch keine Events empfangen.",
+                "select_stream": "Wähle einen Stream",
+                "filter_hint": "Neue und geänderte Filter werden erst bei neuen Events aktiv.",
+                "add_filter_group": "Stream Filter",
                 "modal": {
                     "title": "Erstelle einen Stream Watcher",
                     "watcher_name": "Name des Watchers",
-                    "submit": "Speichern",
+                    "new_watcher": "Erstellen",
+                    "append_to_watcher": "Hinzufügen",
+                    "select_watcher": "Zu existierendem Watcher hinzufügen",
                     "desc": "Ein Watcher beobachtet seinen Stream und filtert neue Events anhand der definierten Filter."
                 }
             }
         }
+    },
+    "common": {
+        "or": "Oder",
+        "save": "Speichern",
+        "cancel": "Abbrechen"
     }
 }

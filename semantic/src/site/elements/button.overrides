@@ -8,6 +8,11 @@
   box-shadow: 0px 0px 0px 2px @red inset !important;
 }
 
+.filterbox.watcher .ui.basic.button:hover {
+  color: @red !important;
+}
+
 .ui.inverted.red.button:hover {
   background-color: @red;
+  color: @white !important;
 }
