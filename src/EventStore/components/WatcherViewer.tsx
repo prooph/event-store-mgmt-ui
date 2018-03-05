@@ -86,7 +86,7 @@ export class WatcherViewer extends React.Component<WatcherViewerProps, undefined
                 <Message warning={true}>{this.props.t('app.eventStore.watcher.no_recorded_events')}</Message>
                 }
                 {panels.length > 0 &&
-                <Accordion styled={true} fluid={true} defaultActiveIndex={[activePanel]} panels={panels} exclusive={false} className={'event_stream'} />
+                <Accordion key={this.props.watcher.id() + '-accordion'} styled={true} fluid={true} defaultActiveIndex={[activePanel]} panels={panels} exclusive={false} className={'event_stream'} />
                 }
             </Card>
         </div>
