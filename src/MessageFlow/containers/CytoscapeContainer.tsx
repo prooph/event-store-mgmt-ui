@@ -16,6 +16,8 @@ interface PropsToDispatch {
     onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void,
     onImportMessageFlowFile: (file: File) => void,
     onNotSupportedFileTypeDropped: (file: File) => void,
+    onStartWatchSession: () => void,
+    onStopWatchSession: () => void,
 }
 
 interface OwnProps {
@@ -25,7 +27,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     return bindActionCreators({
         onSaveMessageFlow: Command.saveMessageFlow,
         onImportMessageFlowFile: Command.importMessageFlowFile,
-        onNotSupportedFileTypeDropped: Command.notifyAboutNotSupportedFileType
+        onNotSupportedFileTypeDropped: Command.notifyAboutNotSupportedFileType,
+        onStartWatchSession: Command.startWatchSession,
+        onStopWatchSession: Command.stopWatchSession,
     } as any, dispatch);
 };
 

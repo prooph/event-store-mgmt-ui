@@ -1,9 +1,12 @@
-import {Record} from 'immutable';
+import {Record, List} from 'immutable';
 import {EdgeDefinition, ElementsDefinition, NodeDefinition} from "cytoscape";
 import * as _ from "lodash";
+import {Model as ESModel} from "../../EventStore/index";
 
 export interface MessageFlowType {
-    elements: ElementsDefinition
+    elements: ElementsDefinition,
+    watching?: boolean,
+    recordedEvents?: List<ESModel.Event.DomainEvent>,
 }
 
 const assert = (data: MessageFlowType): void => {
@@ -24,13 +27,19 @@ export const emptyMessageFlow = (): MessageFlow => {
 }
 
 export class MessageFlow extends Record({
-    elements: {nodes: [], edges: []}
+    elements: {nodes: [], edges: []},
+    watching: false,
+    recordedEvents: List()
 }) {
     constructor(data: MessageFlowType) {
         assert(data);
         super(data);
         this.elements = this.elements.bind(this);
         this.mergeElements = this.mergeElements.bind(this);
+        this.isWatching = this.isWatching.bind(this);
+        this.recordedEvents = this.recordedEvents.bind(this);
+        this.recordEvent = this.recordEvent.bind(this);
+        this.stopWatching = this.stopWatching.bind(this);
     }
 
     elements(): ElementsDefinition {
@@ -39,6 +48,24 @@ export class MessageFlow extends Record({
 
     mergeElements(elements: ElementsDefinition): MessageFlow {
         return new MessageFlow({"elements": mergeElements(this.elements(), elements)});
+    }
+
+    isWatching(): boolean {
+        return this.get("watching");
+    }
+
+    recordedEvents(): List<ESModel.Event.DomainEvent> {
+        return this.get("recordedEvents") as List<ESModel.Event.DomainEvent>;
+    }
+
+    recordEvent(event: ESModel.Event.DomainEvent): MessageFlow {
+        const events = this.recordedEvents();
+
+        return this.set("recordedEvents", events.push(event)) as MessageFlow;
+    }
+
+    stopWatching(): MessageFlow {
+        return this.set("watching", false).set("recordedEvents", List()) as MessageFlow;
     }
 }
 

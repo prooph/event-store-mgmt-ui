@@ -15,9 +15,11 @@ export const loadMessageFlow = (): MessageFlow.MessageFlow => {
             return MessageFlow.emptyMessageFlow();
         }
 
-        const messageFlowData: ElementsDefinition = JSON.parse(serializedState);
+        const data = JSON.parse(serializedState);
 
-        return new MessageFlow.MessageFlow({elements: messageFlowData});
+        const messageFlowData: ElementsDefinition = data.elements;
+
+        return new MessageFlow.MessageFlow({elements: messageFlowData, watching: data.watching});
     } catch (err) {
         console.error(err);
         return MessageFlow.emptyMessageFlow();
@@ -26,7 +28,7 @@ export const loadMessageFlow = (): MessageFlow.MessageFlow => {
 
 export const saveMessageFlow = (flow: MessageFlow.MessageFlow): void => {
     try {
-        const serializedFlow = JSON.stringify(flow.elements());
+        const serializedFlow = JSON.stringify({elements: flow.elements(), watching: flow.isWatching()});
         localStorage.setItem(KEY_MESSAGE_FLOW, serializedFlow);
     } catch (err) {
         console.error(err);

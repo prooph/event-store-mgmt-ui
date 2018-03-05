@@ -17,14 +17,7 @@ export const INITIAL_STATE = fromJS(initialState);
 
 let reducers = {};
 
-reducers[PATH_MESSAGE_FLOW] = (state = INITIAL_MESSAGE_FLOW_STATE, action: Action) => {
-    switch (action.type) {
-        case MessageFlowCommand.CMD_SAVE_MESSAGE_FLOW:
-            return messageFlowReducer(state, action);
-        default:
-            return state;
-    }
-};
+reducers[PATH_MESSAGE_FLOW] = messageFlowReducer;
 
 reducers[PATH_NOTIFICATIONS] = (state = INITIAL_NOTIFICATIONS_STATE, action: Action) => {
     switch (action.type) {

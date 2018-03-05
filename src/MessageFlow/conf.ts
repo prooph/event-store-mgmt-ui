@@ -70,6 +70,12 @@ export const conf: any = {
                 "overlay-opacity": "0.5",
                 "overlay-padding": "5"
             }
-        }
+        },
+        {
+            selector: '.inactive',
+            style: {
+                "background-color": "#b5b5bf"
+            }
+        },
     ],
 };
