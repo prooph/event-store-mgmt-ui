@@ -9,7 +9,7 @@ import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import MenuWatchBtn from "./MenuWatchBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
-import {CollectionElements, ElementsDefinition, NodeDefinition} from "cytoscape";
+import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} from "cytoscape";
 import * as _ from "lodash";
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
 
@@ -95,12 +95,60 @@ const filterNodesWithPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
     return filteredNodes;
 }
 
+const findPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
+    let matchedEdges = [];
+    messageFlow.elements().edges.forEach((edge: EdgeDefinition) => {
+        if(edge.data.target === node.data.id) {
+            matchedEdges.push(edge)
+        }
+    });
+
+    if(matchedEdges.length === 0) {
+        return null;
+    }
+
+    let matchedNodes = [];
+
+    matchedEdges.forEach(edge => {
+        messageFlow.elements().nodes.forEach(node => {
+            if(edge.data.source === node.data.id) {
+                matchedNodes.push(node);
+            }
+        })
+    })
+
+    return matchedNodes;
+}
+
+const followPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
+    let prevNeighbours = findPrevNeighbours(node, messageFlow);
+
+    if(null === prevNeighbours) {
+        return null;
+    }
+
+    prevNeighbours.forEach(prevNode => {
+        const nextPrevNeighbours = followPrevNeighbours(prevNode, messageFlow);
+
+        if(null !== nextPrevNeighbours) {
+            nextPrevNeighbours.forEach(prevNode => prevNeighbours.push(prevNode))
+        }
+    })
+
+    return prevNeighbours;
+}
+
+const removeInactiveStatus = (node: Map<string, any>): Map<string, any> => {
+    return node.set('classes', node.get('classes').replace(' inactive', ''))
+}
+
 const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.MessageFlow): NodeDefinition[] => {
     if(!messageFlow.isWatching()) {
         return nodes;
     }
 
-    let modifiedNodes = [];
+    let modifiedNodes = Map({});
+    let allPrevNeighbours = [];
 
     nodes.forEach(node => {
         let nodeMap = Map<string, any>(node).set("data", Map<string, any>(node.data));
@@ -108,13 +156,20 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
         if(messageFlow.recordedEvents().filter(
             event => event.messageName() === nodeMap.getIn(['data', 'class']) || event.messageName() === nodeMap.getIn(['data', 'name'])
         ).count() > 0) {
-            nodeMap = nodeMap.set('classes', nodeMap.get('classes').replace(' inactive', ''))
+            nodeMap = removeInactiveStatus(nodeMap);
+            let prevNeighbours = followPrevNeighbours(nodeMap.toJS(), messageFlow);
+            prevNeighbours.forEach(prevNeighbour => allPrevNeighbours.push(prevNeighbour))
         }
 
-        modifiedNodes.push(nodeMap.toJS())
+        modifiedNodes = modifiedNodes.set(nodeMap.getIn(['data', 'id']), nodeMap.toJS());
     })
 
-    return modifiedNodes;
+    allPrevNeighbours.forEach(prevNeighbour => {
+        prevNeighbour = removeInactiveStatus(Map<string, any>(prevNeighbour).set("data", Map<string, any>(prevNeighbour.data)));
+        modifiedNodes = modifiedNodes.set(prevNeighbour.getIn(['data', 'id']), prevNeighbour.toJS());
+    })
+
+    return modifiedNodes.toList().toJS();
 }
 
 export interface CytoscapeProps {
