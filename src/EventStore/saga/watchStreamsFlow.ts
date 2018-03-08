@@ -25,7 +25,7 @@ function* watchStream(streamName: Stream.StreamName, httpApi: EventStore.EventSt
             }
         }
 
-        yield call(delay, 1000);
+        yield call(delay, 2000);
     }
 }
 
@@ -40,7 +40,7 @@ function* handleEvents(history: History, chan: Channel<Evt.NewDomainEventReceive
         for(let i = 0, len = watcherIds.size;i < len; i++) {
             const watcher = watcherList.get(watcherIds.get(i));
 
-            if(watcher.isInterestedIn(action.streamName, action.event)) {
+            if(watcher.isWatching() && watcher.isInterestedIn(action.streamName, action.event)) {
                 yield put(Cmd.recordWatcherEvent(watcher.id(), action.event));
                 //@TODO: check watcher config if notification should be triggered
 

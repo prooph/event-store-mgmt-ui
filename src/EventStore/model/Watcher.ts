@@ -11,7 +11,6 @@ export type Name = string;
 export interface WatcherType {
     watcherId: Id,
     watcherName: Name,
-    streams: List<StreamName>,
     filters: List<StreamFilterGroup>,
     watching?: boolean,
     recordedEvents?: List<DomainEvent>
@@ -22,7 +21,6 @@ export interface WatcherType {
 export class Watcher extends Record({
     watcherId: '',
     watcherName: 'unknown watcher',
-    streams: fromJS([]),
     filters: fromJS([]),
     watching: true,
     recordedEvents: fromJS([]),
@@ -51,7 +49,14 @@ export class Watcher extends Record({
     }
 
     streams(): List<StreamName> {
-        return this.get('streams')
+        let streams = List();
+        this.filters().forEach(filterGroup => {
+            if (!streams.contains(filterGroup.streamName())) {
+                streams = streams.push(filterGroup.streamName());
+            }
+        });
+
+        return streams as List<StreamName>;
     }
 
     filters(): List<StreamFilterGroup> {

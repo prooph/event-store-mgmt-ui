@@ -34,7 +34,7 @@ export class DomainEvent extends Record({
 
     shortMessageName(len?: number): string {
         if(typeof len === 'undefined') {
-            len = 50;
+            len = 40;
         }
 
         if(this.messageName().length > len) {
