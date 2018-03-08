@@ -109,7 +109,7 @@ export class StreamsLayout extends React.Component<StreamsLayoutProps, {contextR
                 onAppendToWatcher={this.props.onAppendToWatcher}
             />
             :
-            <NoStreamSelected t={this.props.t}/>;
+            <NoStreamSelected t={this.props.t} style={{minHeight: window.innerHeight}}/>;
 
         return <Grid centered columns={2}>
             <Grid.Column width={10}>

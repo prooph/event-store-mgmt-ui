@@ -51,7 +51,7 @@ export class WatchersLayout extends React.Component<WatchersLayoutProps, {contex
                 onFilterSubmit={this.props.onFilterSubmit}
             />
             :
-            <NoWatcherSelected t={this.props.t}/>;
+            <NoWatcherSelected t={this.props.t} style={{minHeight: window.innerHeight}}/>;
 
         return <Grid centered columns={2}>
             <Grid.Column width={10}>
