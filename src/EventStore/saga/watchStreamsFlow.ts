@@ -78,7 +78,7 @@ export default function* watchStreamsFlow(httpApi: EventStore.EventStoreHttpApi,
     yield fork(handleEvents, history, chan);
 
     while (true) {
-        const action = yield take([Cmd.REMOVE_STREAM_WATCHER, Cmd.TOGGLE_STREAM_WATCHER]);
+        const action = yield take([Cmd.ADD_STREAM_WATCHER, Cmd.REMOVE_STREAM_WATCHER, Cmd.TOGGLE_STREAM_WATCHER]);
 
         activeWatcherStreams = yield call(determineActiveWatcherStreams);
         for(let i = 0, len = activeWatcherStreams.size; i < len; i++) {
