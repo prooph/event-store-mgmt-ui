@@ -17,12 +17,16 @@ export function getInitialStreamList(httpApi: EventStoreHttpApi): SendHttpReques
     return sendHttpRequest<{}>(request, GET_INITIAL_STREAM_LIST);
 }
 
-export interface GetLatestStreamEvents extends WebDataAction<StreamResponseType, {streamName: Stream.StreamName}> {}
+export interface GetLatestStreamEvents extends WebDataAction<StreamResponseType, {streamName: Stream.StreamName} & ErrorCodeWhitelist> {}
 
-export function getLatestStreamEvents(httpApi: EventStoreHttpApi, streamName: string, limit?: number): SendHttpRequest<{streamName: Stream.StreamName}> {
+export function getLatestStreamEvents(httpApi: EventStoreHttpApi, streamName: string, limit?: number): SendHttpRequest<{streamName: Stream.StreamName} & ErrorCodeWhitelist> {
     limit = limit || 10;
     const request = {'url': httpApi.getLatestStreamEvents(streamName, limit)};
-    return sendHttpRequest<{streamName: Stream.StreamName}>(request, GET_LATEST_STREAM_EVENTS, {streamName});
+    return sendHttpRequest<{streamName: Stream.StreamName} & ErrorCodeWhitelist>(
+        request,
+        GET_LATEST_STREAM_EVENTS,
+        {streamName, errorCodeWhitelist: EmptyStreamErrorCodes}
+    );
 }
 
 export interface GetOlderStreamEvents extends WebDataAction<StreamResponseType, {streamName: Stream.StreamName} & ErrorCodeWhitelist> {}
