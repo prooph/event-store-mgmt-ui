@@ -101,9 +101,9 @@ store.subscribe(() => {
     saveWatchers(watchers);
 })
 
-//EVENT_STORE_BASE_URL is defined in app.env
-declare const EVENT_STORE_BASE_URL: string;
-const httpApi = new EventStoreHttpApi(EVENT_STORE_BASE_URL);
+const backends = JSON.parse(process.env.BACKENDS);
+const httpApi = new EventStoreHttpApi(backends.default.eventStoreBaseUrl);
+
 
 sagaMiddleware.run(rootSaga as any, httpApi, history);
 

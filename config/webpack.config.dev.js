@@ -254,9 +254,6 @@ module.exports = {
       '$': 'jquery',
       'jQuery': 'jquery'
     }),
-    new webpack.ProvidePlugin({
-        'window.EVENT_STORE_BASE_URL': JSON.stringify(process.env.EVENT_STORE_BASE_URL)
-    }),
   ],
   // Some libraries import Node modules but don't use them in the browser.
   // Tell Webpack to provide empty mocks for them so importing them works.
