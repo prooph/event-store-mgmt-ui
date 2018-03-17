@@ -11,6 +11,7 @@ import MenuWatchBtn from "./MenuWatchBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
 import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} from "cytoscape";
 import * as _ from "lodash";
+import * as $ from "jquery";
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
 
 cytour(cytoscape);
