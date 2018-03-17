@@ -11,7 +11,7 @@ const Overview = (props: Overview) => {
     // Add your containers here
     return <Grid centered={true}>
         <Grid.Row>
-            <p>Welcome to React + Redux + Semantic UI Skeleton</p>
+            <p>WELCOME TO THE PROOPH EVENT STORE MGMT UI</p>
         </Grid.Row>
         <Grid.Row>
             <Image src={logo} style={{width:300, height:300}}/>
