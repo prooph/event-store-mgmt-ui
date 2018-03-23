@@ -1,5 +1,4 @@
 import configuredAxios from "../api/ConfiguredAxios";
-import {AxiosPromise} from "axios";
 const faSvgUrl = require('../theme/font-awesome/fa-solid.svg');
 
 let faSvg;
@@ -57,6 +56,12 @@ function renderNodeBgColor(ele) {
     return {color};
 }
 
+function renderParentBgColor(ele) {
+    const color = ele.data('color') || '#E9F2F7';
+
+    return {color}
+}
+
 
 export const conf: any = {
     container: null,
@@ -75,16 +80,10 @@ export const conf: any = {
             },
         },
         {
-            selector: 'edge',
-            style: {
-                'target-arrow-shape': 'triangle'
-            }
-        },
-        {
             selector: '.parent',
             style: {
-                "background-color": "#e9f2f7",
-                "text-valign": "top",
+                'background-color': ele => renderParentBgColor(ele).color,
+                'text-valign': 'top',
             }
         },
         {
