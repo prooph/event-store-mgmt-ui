@@ -1,42 +1,108 @@
 import configuredAxios from "../api/ConfiguredAxios";
-const faSvgUrl = require('../theme/font-awesome/fa-solid.svg');
+const fasSvgUrl = require('../theme/font-awesome/fa-solid.svg');
+const farSvgUrl = require('../theme/font-awesome/fa-regular.svg');
+const fabSvgUrl = require('../theme/font-awesome/fa-brands.svg');
 
-let faSvg;
+let fasSvg;
+let farSvg;
+let fabSvg;
 
-export const loadFontAwesomeSvg = (): Promise<void> => {
-    return configuredAxios.request({url: faSvgUrl}).then(response => {
+export const loadFontAwesomeSvg = (): Promise<void[]> => {
+    const fasPromise = configuredAxios.request({url: fasSvgUrl}).then(response => {
         const xmlResponse = response as any;
-        faSvg = xmlResponse.request.responseXML;
+        fasSvg = xmlResponse.request.responseXML;
     })
+
+    const farPromise = configuredAxios.request({url: farSvgUrl}).then(response => {
+        const xmlResponse = response as any;
+        farSvg = xmlResponse.request.responseXML;
+    })
+
+    const fabPromise = configuredAxios.request({url: fabSvgUrl}).then(response => {
+        const xmlResponse = response as any;
+        fabSvg = xmlResponse.request.responseXML;
+    })
+
+    return Promise.all([fasPromise, farPromise, fabPromise]);
 }
 
 
-const faIconPath = (icon: string): string => {
-    if(icon === '__default__') {
+const faIconPath = (icon: Icon): string => {
+    if(icon.isLink()) {
+        throw Error("Cannot determine font awesome path for link icon. Got " + icon.name);
+    }
+
+    if(icon.type === 'default') {
         //default icon: dot-circle
         return 'M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm80 248c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80z';
     }
 
-    icon = icon.replace('fa-', '');
+    const iconName = icon.name.replace('fa-', '');
 
     try {
-       return faSvg.querySelector(`#${icon} path`).getAttribute('d');
+        switch (icon.type) {
+            case 'fas':
+                return fasSvg.querySelector(`#${iconName} path`).getAttribute('d');
+            case 'far':
+                return farSvg.querySelector(`#${iconName} path`).getAttribute('d');
+            case 'fab':
+                return fabSvg.querySelector(`#${iconName} path`).getAttribute('d');
+        }
     } catch (e) {
-        throw Error(`FontAwesome icon "${icon}" not available`)
+        throw Error(`FontAwesome ${icon.type} icon "${icon.name}" not available. Did you pick a pro item? Only free icons are supported.`)
     }
 }
 
-function renderNodeBg (ele) {
-    let icon = ele.data('icon');
+interface Icon {
+    type: string,
+    name: string,
+    isLink: () => boolean,
+}
 
-    if(!icon || !faSvg) {
-        icon = '__default__';
+const iconFromString = (icon: string): Icon => {
+    if(icon === '__default__') {
+        return {
+            type: "default",
+            name: "__default__",
+            isLink: () => false,
+        }
     }
+
+    const [type, name] = icon.split(" ");
+
+    if(type !== 'fas' && type !== 'far' && type !== 'fab' && type !== 'link') {
+        throw Error(`Unsupported icon type. Should be one of: fas, far, fab, link. Got ${type}`);
+    }
+
+    if(!name) {
+        throw Error(`Missing icon name. Got ${icon}`);
+    }
+
+    return {
+        type,
+        name,
+        isLink: () => type === 'link',
+    }
+}
+
+
+function renderNodeBg (ele) {
+    let iStr = ele.data('icon');
+
+    if(!iStr || !fasSvg) {
+        iStr = '__default__';
+    }
+
+    const icon = iconFromString(iStr);
 
     let color = ele.data('color') || '#343434';
 
     if(ele.hasClass('inactive')) {
         color = '#C2C2C2';
+    }
+
+    if(icon.isLink()) {
+        return {url: icon.name}
     }
 
     const svg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg>
