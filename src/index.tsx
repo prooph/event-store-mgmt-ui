@@ -141,4 +141,5 @@ ReactDOM.render(
     document.getElementById('root'),
 );
 notify();
-registerServiceWorker();
+//@TODO: Do we need the service worker for mgmt UI?
+//registerServiceWorker();

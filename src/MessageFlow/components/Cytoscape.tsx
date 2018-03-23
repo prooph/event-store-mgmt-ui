@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {List, Map} from 'immutable';
 import * as cytoscape from 'cytoscape';
-import {conf} from '../conf';
+import {conf, loadFontAwesomeSvg} from '../conf';
 import {gridConf} from "../grid-conf"
 import {MessageFlow} from "../model";
 import { Grid, Menu, Icon } from 'semantic-ui-react';
@@ -311,6 +311,10 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     componentDidMount(){
         conf.container = this.cyelement;
 
+        const svgReady = loadFontAwesomeSvg();
+
+        const {messageFlow} = this.props;
+
         let cy = cytoscape(conf) as any;
 
         this.cytour = cy.undoRedo();
@@ -320,10 +324,18 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         cy.on("tapstart", "node", this.handleCytoscapeChange);
 
         this.cy = cy;
-        cy.add(this.props.messageFlow.elements().nodes);
-        cy.add(this.props.messageFlow.elements().edges);
 
-        cy.fit();
+        svgReady.then(function () {
+            cy.remove('*');
+
+            const nodes = applyWatchSession(
+                messageFlow.elements().nodes,
+                messageFlow
+            );
+            cy.add(nodes);
+            cy.add(messageFlow.elements().edges);
+            cy.fit();
+        })
 
         this.watchBtn.setState({"watching": this.props.messageFlow.isWatching()})
     }
