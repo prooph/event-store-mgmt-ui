@@ -1,4 +1,4 @@
-import {Record, List} from 'immutable';
+import {Record, List, Map} from 'immutable';
 import {EdgeDefinition, ElementsDefinition, NodeDefinition} from "cytoscape";
 import * as _ from "lodash";
 import {Model as ESModel} from "../../EventStore/index";
@@ -86,7 +86,7 @@ export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): Ele
 
     a.nodes.forEach((node: NodeDefinition) => {
         if(!_.isUndefined(bNodes[node.data.id])) {
-            mergedNodes.push(node);
+            mergedNodes.push(updateNonPositionNodeProps(node, bNodes[node.data.id]));
         }
     })
 
@@ -112,3 +112,7 @@ export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): Ele
 
     return {nodes: mergedNodes, edges: mergedEdges};
 };
+
+const updateNonPositionNodeProps = (nodeWithPosition: NodeDefinition, updatedNode: NodeDefinition): NodeDefinition => {
+    return Map(updatedNode).set('position', nodeWithPosition.position).toJS() as NodeDefinition;
+}
