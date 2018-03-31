@@ -1469,6 +1469,14 @@ currently-unhandled@^0.4.1:
   dependencies:
     array-find-index "^1.0.1"
 
+cytoscape-context-menus@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/cytoscape-context-menus/-/cytoscape-context-menus-3.0.5.tgz#210fbff14ac83f31a62b2ed2ab67d3b780b943dd"
+
+cytoscape-edge-bend-editing@^1.5.4:
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/cytoscape-edge-bend-editing/-/cytoscape-edge-bend-editing-1.5.4.tgz#7a6945e882a6623733ec710e75ae58ca09fe53e2"
+
 cytoscape-grid-guide@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/cytoscape-grid-guide/-/cytoscape-grid-guide-2.1.2.tgz#15cdcc0e3268a94c680b3195f16d2b9c1673b0ff"

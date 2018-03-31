@@ -11,10 +11,15 @@ import MenuWatchBtn from "./MenuWatchBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
 import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} from "cytoscape";
 import * as _ from "lodash";
-import * as $ from "jquery";
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
+const cycmenu = require('cytoscape-context-menus');
+const cyEdgeBendEditing = require('cytoscape-edge-bend-editing');
 
+declare const $: any;
+
+cycmenu(cytoscape, $);
 cytour(cytoscape);
+cyEdgeBendEditing(cytoscape, $);
 
 let cyStyle = {
     height: '100%',
@@ -186,6 +191,8 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     private cy: cytoscape.Core;
     private cyelement: HTMLDivElement;
     private cytour: any;
+    private cyContextMenu: any;
+    private cyEdgeBendEditing: any;
     private dropzone: Dropzone;
     private saveBtn: React.Component;
     private watchBtn: React.Component;
@@ -318,10 +325,13 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         let cy = cytoscape(conf) as any;
 
         this.cytour = cy.undoRedo();
+        this.cyContextMenu = cy.contextMenus();
+        this.cyEdgeBendEditing = cy.edgeBendEditing({undoable: true, bendShapeSizeFactor: 10});
 
         cy["gridGuide"](gridConf);
 
         cy.on("tapstart", "node", this.handleCytoscapeChange);
+        cy.on("tapstart", "edge", this.handleCytoscapeChange);
 
         this.cy = cy;
 

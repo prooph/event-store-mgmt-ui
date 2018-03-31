@@ -143,13 +143,26 @@ export const conf: any = {
                 'width': 75,
                 'height': 75,
                 'text-valign': 'bottom',
+                'font-size': '42px',
+                'text-background-color': ele => renderNodeBgColor(ele).color,
+                'text-background-opacity': 1
             },
+        },
+        {
+            selector: 'edge',
+            style: {
+                'curve-style': 'haystack',
+                'mid-target-arrow-shape': 'triangle',
+                'arrow-scale': 2
+            }
         },
         {
             selector: '.parent',
             style: {
                 'background-color': ele => renderParentBgColor(ele).color,
                 'text-valign': 'top',
+                'font-size': '52px',
+                'font-weight': 'bold'
             }
         },
         {
