@@ -15,6 +15,8 @@ const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
 const cycmenu = require('cytoscape-context-menus');
 const cyEdgeBendEditing = require('cytoscape-edge-bend-editing');
 
+import 'cytoscape-context-menus/cytoscape-context-menus.css'
+
 declare const $: any;
 
 cycmenu(cytoscape, $);
