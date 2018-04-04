@@ -29,6 +29,35 @@ let cyStyle = {
     display: 'block'
 };
 
+const cyContextMenuConfig = (cy) => {
+    return {
+        menuItems: [
+            {
+                id: 'selectMethods',
+                content: 'Select Methods',
+                selector: 'node.parent',
+                onClickFunction: function (event) {
+                    const target = event.target || event.cyTarget;
+                    selectParentMethods(target);
+                    target.unselect();
+                }
+            },
+            {
+                id: 'selectNeighbours',
+                content: 'Select Neighbours',
+                selector: 'node',
+                onClickFunction: function (event) {
+                    const target = event.target || event.cyTarget;
+                    target.select();
+
+                    cy.$('node:selected').each(node => selectNeighbourNodes(node, cy));
+                }
+            }
+        ]
+    }
+}
+
+//Node Layout
 let commandRow = 0;
 let commandHandlerRow = 0;
 let aggregateMethodRow = 0;
@@ -81,6 +110,7 @@ const positioningLayout = {
     position: nodeRowCol,
 };
 
+//Filter nodes
 const filterNodesWithoutPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
     let filteredNodes = [];
     nodes.forEach(node => {
@@ -128,6 +158,8 @@ const findPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.Messa
     return matchedNodes;
 }
 
+
+//Watch Mode
 const followPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
     let prevNeighbours = findPrevNeighbours(node, messageFlow);
 
@@ -178,6 +210,23 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
     })
 
     return modifiedNodes.toList().toJS();
+}
+
+//Selection
+const selectParentMethods = (parent) => {
+    parent.children().forEach(method => method.select());
+}
+
+const selectNeighbourNodes = (node, cy) => {
+    node.connectedEdges().forEach(edge => {
+        if(edge.source().data('id') !== node.data('id')) {
+            edge.source().select();
+        }
+
+        if(edge.target().data('id') !== node.data('id')) {
+            edge.target().select();
+        }
+    })
 }
 
 export interface CytoscapeProps {
@@ -327,7 +376,7 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         let cy = cytoscape(conf) as any;
 
         this.cytour = cy.undoRedo();
-        this.cyContextMenu = cy.contextMenus();
+        this.cyContextMenu = cy.contextMenus(cyContextMenuConfig(cy));
         this.cyEdgeBendEditing = cy.edgeBendEditing({undoable: true, bendShapeSizeFactor: 10});
 
         cy["gridGuide"](gridConf);
