@@ -9,8 +9,8 @@ import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import MenuWatchBtn from "./MenuWatchBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
+import {filterNodesWithPosition, filterNodesWithoutPosition, findPrevNeighbours, followPrevNeighbours} from "../flowutils/index";
 import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} from "cytoscape";
-import * as _ from "lodash";
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
 const cycmenu = require('cytoscape-context-menus');
 const cyEdgeBendEditing = require('cytoscape-edge-bend-editing');
@@ -52,132 +52,111 @@ const cyContextMenuConfig = (cy) => {
 
                     cy.$('node:selected').each(node => selectNeighbourNodes(node, cy));
                 }
+            },
+            {
+                id: 'rearrange',
+                content: 'Rearrange',
+                selector: 'node',
+                coreAsWell: true,
+                onClickFunction: function (event) {
+                    const eles = cy.$('node:selected');
+                    const layout = eles.layout(positioningLayout(
+                        false,
+                        calculateBoundingBoxOfNodes(eles)
+                    )) as any;
+                    layout.run();
+                }
             }
         ]
     }
 }
 
 //Node Layout
-let commandRow = 0;
-let commandHandlerRow = 0;
-let aggregateMethodRow = 0;
-let eventRow = 0;
-let eventListener = 0;
-
-const nodeRowCol = (node) => {
-
-    if(node.hasClass('command')) {
-        if(node.hasClass('message')) {
-            commandRow = commandRow + 1;
-            return {row: commandRow, col: 0};
-        }
-
-        if(node.hasClass('handler')) {
-            commandHandlerRow = commandHandlerRow + 1;
-            return {row: commandHandlerRow, col: 1};
-        }
-
-        if(node.hasClass('producer')) {
-            eventListener = eventListener + 1;
-            return {row: eventListener, col: 4};
-        }
-    }
-
-    if(node.hasClass('event')) {
-        if(node.hasClass('message')) {
-            eventRow = eventRow + 1;
-            return {row: eventRow, col: 3};
-        }
-
-        if(node.hasClass('recorder') || node.hasClass('factory')) {
-            aggregateMethodRow = aggregateMethodRow + 1;
-            return {row: aggregateMethodRow, col: 2};
-        }
-
-        if(node.hasClass('listner')) {
-            eventListener = eventListener + 1;
-            return {row: eventListener, col: 4};
-        }
-    }
-
-    return {};
-};
-
-const positioningLayout = {
-    name: "grid",
-    avoidOverlap: true,
-    avoidOverlapPadding: 20,
-    position: nodeRowCol,
-};
-
-//Filter nodes
-const filterNodesWithoutPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
-    let filteredNodes = [];
-    nodes.forEach(node => {
-        if(_.isUndefined(node.position)) {
-            filteredNodes.push(node);
-        }
-    })
-
-    return filteredNodes;
+const calculateBoundingBoxOfNodes = (nodes) => {
+    return nodes.boundingBox({includeEdges: false});
 }
 
-const filterNodesWithPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
-    let filteredNodes = [];
-    nodes.forEach(node => {
-        if(!_.isUndefined(node.position)) {
-            filteredNodes.push(node);
-        }
-    })
+const positioningLayout = (fit?: boolean, boundingBox?: any) => {
 
-    return filteredNodes;
-}
-
-const findPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
-    let matchedEdges = [];
-    messageFlow.elements().edges.forEach((edge: EdgeDefinition) => {
-        if(edge.data.target === node.data.id) {
-            matchedEdges.push(edge)
-        }
-    });
-
-    if(matchedEdges.length === 0) {
-        return null;
+    if(typeof fit === 'undefined') {
+        fit = true;
     }
 
-    let matchedNodes = [];
+    let commandRow = 0;
+    let commandHandlerRow = 0;
+    let aggregateMethodRow = 0;
+    let eventRow = 0;
+    let eventListener = 0;
+    let service = 0;
+    let knownNodes = {
+        commands: {},
+        commandHandlers: {},
+        aggregateMethods: {},
+        events: {},
+        listeners: {},
+        services: {}
+    };
+    let i;
 
-    matchedEdges.forEach(edge => {
-        messageFlow.elements().nodes.forEach(node => {
-            if(edge.data.source === node.data.id) {
-                matchedNodes.push(node);
+    const nodeRowCol = (node) => {
+
+        if(node.hasClass('command')) {
+            if(node.hasClass('message')) {
+                commandRow = commandRow + 1;
+                return {row: commandRow, col: 0};
             }
-        })
-    })
 
-    return matchedNodes;
-}
+            if(node.hasClass('handler')) {
+                commandHandlerRow = commandHandlerRow + 1;
+                return {row: commandHandlerRow, col: 1};
+            }
 
+            if(node.hasClass('producer')) {
+                eventListener = eventListener + 1;
+                return {row: eventListener, col: 4};
+            }
+        }
+
+        if(node.hasClass('event')) {
+            if(node.hasClass('message')) {
+                eventRow = eventRow + 1;
+                return {row: eventRow, col: 3};
+            }
+
+            if(node.hasClass('recorder') || node.hasClass('factory')) {
+                aggregateMethodRow = aggregateMethodRow + 1;
+                return {row: aggregateMethodRow, col: 2};
+            }
+
+            if(node.hasClass('listner')) {
+                eventListener = eventListener + 1;
+                return {row: eventListener, col: 4};
+            }
+        }
+
+        service = service + 1;
+        return {row: service, col: 5};
+    };
+
+    const sortNodes = (nodeA, nodeB) => {
+        //@TODO: use sort function to sort incomers nodes cy.$(nodeA).incomers()
+        i = i + 1;
+        return i;
+    }
+
+    return {
+        name: "grid",
+        fit: fit,
+        boundingBox: boundingBox,
+        avoidOverlap: true,
+        avoidOverlapPadding: 20,
+        position: nodeRowCol,
+        sort: sortNodes,
+        nodeDimensionsIncludeLabels: true,
+    }
+};
 
 //Watch Mode
-const followPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
-    let prevNeighbours = findPrevNeighbours(node, messageFlow);
-
-    if(null === prevNeighbours) {
-        return null;
-    }
-
-    prevNeighbours.forEach(prevNode => {
-        const nextPrevNeighbours = followPrevNeighbours(prevNode, messageFlow);
-
-        if(null !== nextPrevNeighbours) {
-            nextPrevNeighbours.forEach(prevNode => prevNeighbours.push(prevNode))
-        }
-    })
-
-    return prevNeighbours;
-}
-
 const removeInactiveStatus = (node: Map<string, any>): Map<string, any> => {
     return node.set('classes', node.get('classes').replace(' inactive', ''))
 }
@@ -219,11 +198,13 @@ const selectParentMethods = (parent) => {
 
 const selectNeighbourNodes = (node, cy) => {
     node.connectedEdges().forEach(edge => {
-        if(edge.source().data('id') !== node.data('id')) {
+        if(edge.source().data('id') !== node.data('id')
+            && !edge.source().isChild()) {
             edge.source().select();
         }
 
-        if(edge.target().data('id') !== node.data('id')) {
+        if(edge.target().data('id') !== node.data('id')
+            && !edge.target().isChild()) {
             edge.target().select();
         }
     })
@@ -419,14 +400,7 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
 
         const eles: CollectionElements = this.cy.add(nodesWithoutPosition);
 
-        //Reset global vars
-        commandRow = 0;
-        commandHandlerRow = 0;
-        aggregateMethodRow = 0;
-        eventRow = 0;
-        eventListener = 0;
-
-        const layout = eles.layout(positioningLayout) as any;
+        const layout = eles.layout(positioningLayout()) as any;
         layout.run();
 
         this.cy.add(nextProps.messageFlow.elements().edges);
