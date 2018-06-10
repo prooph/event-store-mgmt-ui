@@ -9,7 +9,7 @@ import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import MenuWatchBtn from "./MenuWatchBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
-import {filterNodesWithPosition, filterNodesWithoutPosition, findPrevNeighbours, followPrevNeighbours} from "../flowutils/index";
+import {Filter, Layout, Selection} from "../flowutils/index";
 import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} from "cytoscape";
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
 const cycmenu = require('cytoscape-context-menus');
@@ -38,7 +38,7 @@ const cyContextMenuConfig = (cy) => {
                 selector: 'node.parent',
                 onClickFunction: function (event) {
                     const target = event.target || event.cyTarget;
-                    selectParentMethods(target);
+                    Selection.selectParentMethods(target);
                     target.unselect();
                 }
             },
@@ -50,7 +50,7 @@ const cyContextMenuConfig = (cy) => {
                     const target = event.target || event.cyTarget;
                     target.select();
 
-                    cy.$('node:selected').each(node => selectNeighbourNodes(node, cy));
+                    cy.$('node:selected').each(node => Selection.selectNeighbourNodes(node));
                 }
             },
             {
@@ -60,9 +60,10 @@ const cyContextMenuConfig = (cy) => {
                 coreAsWell: true,
                 onClickFunction: function (event) {
                     const eles = cy.$('node:selected');
-                    const layout = eles.layout(positioningLayout(
+                    Layout.prepareSortStrings(eles);
+                    const layout = eles.layout(Layout.positioningLayout(
                         false,
-                        calculateBoundingBoxOfNodes(eles)
+                        Layout.calculateBoundingBoxOfNodes(eles)
                     )) as any;
                     layout.run();
                 }
@@ -70,91 +71,6 @@ const cyContextMenuConfig = (cy) => {
         ]
     }
 }
-
-//Node Layout
-const calculateBoundingBoxOfNodes = (nodes) => {
-    return nodes.boundingBox({includeEdges: false});
-}
-
-const positioningLayout = (fit?: boolean, boundingBox?: any) => {
-
-    if(typeof fit === 'undefined') {
-        fit = true;
-    }
-
-    let commandRow = 0;
-    let commandHandlerRow = 0;
-    let aggregateMethodRow = 0;
-    let eventRow = 0;
-    let eventListener = 0;
-    let service = 0;
-    let knownNodes = {
-        commands: {},
-        commandHandlers: {},
-        aggregateMethods: {},
-        events: {},
-        listeners: {},
-        services: {}
-    };
-    let i;
-
-    const nodeRowCol = (node) => {
-
-        if(node.hasClass('command')) {
-            if(node.hasClass('message')) {
-                commandRow = commandRow + 1;
-                return {row: commandRow, col: 0};
-            }
-
-            if(node.hasClass('handler')) {
-                commandHandlerRow = commandHandlerRow + 1;
-                return {row: commandHandlerRow, col: 1};
-            }
-
-            if(node.hasClass('producer')) {
-                eventListener = eventListener + 1;
-                return {row: eventListener, col: 4};
-            }
-        }
-
-        if(node.hasClass('event')) {
-            if(node.hasClass('message')) {
-                eventRow = eventRow + 1;
-                return {row: eventRow, col: 3};
-            }
-
-            if(node.hasClass('recorder') || node.hasClass('factory')) {
-                aggregateMethodRow = aggregateMethodRow + 1;
-                return {row: aggregateMethodRow, col: 2};
-            }
-
-            if(node.hasClass('listner')) {
-                eventListener = eventListener + 1;
-                return {row: eventListener, col: 4};
-            }
-        }
-
-        service = service + 1;
-        return {row: service, col: 5};
-    };
-
-    const sortNodes = (nodeA, nodeB) => {
-        //@TODO: use sort function to sort incomers nodes cy.$(nodeA).incomers()
-        i = i + 1;
-        return i;
-    }
-
-    return {
-        name: "grid",
-        fit: fit,
-        boundingBox: boundingBox,
-        avoidOverlap: true,
-        avoidOverlapPadding: 20,
-        position: nodeRowCol,
-        sort: sortNodes,
-        nodeDimensionsIncludeLabels: true,
-    }
-};
 
 //Watch Mode
 const removeInactiveStatus = (node: Map<string, any>): Map<string, any> => {
@@ -176,7 +92,7 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
             event => event.messageName() === nodeMap.getIn(['data', 'class']) || event.messageName() === nodeMap.getIn(['data', 'name'])
         ).count() > 0) {
             nodeMap = removeInactiveStatus(nodeMap);
-            let prevNeighbours = followPrevNeighbours(nodeMap.toJS(), messageFlow);
+            let prevNeighbours = Filter.followPrevNeighbours(nodeMap.toJS(), messageFlow);
             prevNeighbours.forEach(prevNeighbour => allPrevNeighbours.push(prevNeighbour))
         }
 
@@ -189,25 +105,6 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
     })
 
     return modifiedNodes.toList().toJS();
-}
-
-//Selection
-const selectParentMethods = (parent) => {
-    parent.children().forEach(method => method.select());
-}
-
-const selectNeighbourNodes = (node, cy) => {
-    node.connectedEdges().forEach(edge => {
-        if(edge.source().data('id') !== node.data('id')
-            && !edge.source().isChild()) {
-            edge.source().select();
-        }
-
-        if(edge.target().data('id') !== node.data('id')
-            && !edge.target().isChild()) {
-            edge.target().select();
-        }
-    })
 }
 
 export interface CytoscapeProps {
@@ -390,20 +287,24 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.cy.remove('*');
 
         const nodesWithPosition = applyWatchSession(
-            filterNodesWithPosition(nextProps.messageFlow.elements().nodes),
+            Filter.filterNodesWithPosition(nextProps.messageFlow.elements().nodes),
             nextProps.messageFlow
         );
 
-        const nodesWithoutPosition = filterNodesWithoutPosition(nextProps.messageFlow.elements().nodes);
+        const nodesWithoutPosition = Filter.filterNodesWithoutPosition(nextProps.messageFlow.elements().nodes);
 
         this.cy.add(nodesWithPosition);
 
         const eles: CollectionElements = this.cy.add(nodesWithoutPosition);
 
-        const layout = eles.layout(positioningLayout()) as any;
+        this.cy.add(nextProps.messageFlow.elements().edges);
+
+        Layout.prepareSortStrings(eles);
+
+        const layout = eles.layout(Layout.positioningLayout()) as any;
         layout.run();
 
-        this.cy.add(nextProps.messageFlow.elements().edges);
+
     }
 
     componentWillUnmount(){
