@@ -20,8 +20,10 @@ interface PropsToDispatch {
     onGetFilteredEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onStreamSelected: (streamName: Stream.StreamName) => void,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
+    onShowInsertBox: (streamName: Stream.StreamName, show: boolean) => void,
     onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onAppendToWatcher: (watcherId: Watcher.Id, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
+    onInsertEvents: (httpApi: EventStore.EventStoreHttpApi, streamName: Stream.StreamName, events: List<Event.DomainEvent>) => void,
 }
 
 interface OwnProps extends RouteComponentProps<{streamName?: Stream.StreamName}> {
@@ -36,8 +38,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
         onGetFilteredEvents: Query.getFilteredStreamEvents,
         onStreamSelected: Cmd.setSelectedStream,
         onShowFilterBox: Cmd.showFilterBox,
+        onShowInsertBox: Cmd.showInsertBox,
         onAddWatcher: Cmd.addStreamWatcher,
         onAppendToWatcher: Cmd.appendFiltersToWatcher,
+        onInsertEvents: Cmd.insertEvents,
     } as any, dispatch);
 };
 

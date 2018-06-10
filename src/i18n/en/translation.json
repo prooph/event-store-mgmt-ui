@@ -13,7 +13,11 @@
                 "empty": "Stream is empty",
                 "end": "No older events available",
                 "title": "Streams",
-                "no_stream_selected": "Chose a stream from the right side to see events of the stream."
+                "filter": "Filter stream",
+                "insert": "Add events",
+                "refresh": "Refresh stream",
+                "no_stream_selected": "Chose a stream from the right side to see events of the stream.",
+                "add_events_here": "A JSON list of events ..."
             },
             "event": {
                 "uuid": "Uuid",
@@ -47,6 +51,10 @@
                     "select_watcher": "Add to existing Watcher",
                     "desc": "A watcher observes the stream it is attached to and collects new events using defined filters."
                 }
+            },
+            "clipboard": {
+                "copy_events": "Copy events to clipboard",
+                "events_copied": "Events copied to clipboard"
             }
         }
     },

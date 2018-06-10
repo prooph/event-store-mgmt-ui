@@ -41,6 +41,14 @@ const filtersToQueryString = (filters: List<Filter.StreamFilter>): string => {
     return filters.map(filterToQueryPart).join('&');
 }
 
+export interface PostStreamInstructions {
+    url: string,
+    headers: {},
+    data: string,
+    responseType: string,
+    method: string,
+}
+
 export class EventStoreHttpApi {
     baseUrl: string;
 
@@ -71,6 +79,18 @@ export class EventStoreHttpApi {
 
     getFilteredEvents(streamName: StreamName, filters: List<Filter.StreamFilter>, limit: number): string {
         return this.getLatestStreamEvents(streamName, limit) + '?' + filtersToQueryString(filters);
+    }
+
+    postStream(streamName: StreamName, events: List<DomainEvent>): PostStreamInstructions {
+        return {
+            url: this.baseUrl + `/stream/${streamName}`,
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(events.map(event => event.toJS()).toJS()),
+            responseType: 'text'
+        }
     }
 }
 
