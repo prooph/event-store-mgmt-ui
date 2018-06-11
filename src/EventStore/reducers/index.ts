@@ -6,6 +6,8 @@ import applyStreamListChanges from "./applyStreamListChanges";
 import applyStreamEvents from "./applyStreamEvents";
 import applyFilteredStreamEvents from "./applyFilteredStreamEvents";
 import applyShowFilterBox from "./applyShowFilterBox";
+import applyShowInsertBox from "./applyShowInsertBox";
+import applyInsertEvents from "./applyInsertEvents";
 import applyAddWatcher from "./applyAddWatcher";
 import applyAppendFiltersToWatcher from "./applyAppendFiltersToWatcher";
 import applyRemoveWatcher from "./applyRemoveWatcher"
@@ -55,6 +57,10 @@ export default (state = initialState, action: Action) => {
             return state.set("selectedWatcher", getSelectedWatcher(<Cmd.SetSelectedWatcher>action));
         case Cmd.SHOW_FILTER_BOX:
             return state.set("streamList", applyShowFilterBox(state.get("streamList", initialState.get("streamList")), action));
+        case Cmd.SHOW_INSERT_BOX:
+            return state.set("streamList", applyShowInsertBox(state.get("streamList", initialState.get("streamList")), action));
+        case Cmd.INSERT_EVENTS:
+            return state.set("streamList", applyInsertEvents(state.get("streamList", initialState.get("streamList")), action));
         case Cmd.ADD_STREAM_WATCHER:
             return state.set("watcherList", applyAddWatcher(state.get("watcherList", Map({})), action));
         case Cmd.APPEND_FILTERS_TO_WATCHER:

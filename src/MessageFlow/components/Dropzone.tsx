@@ -15,7 +15,7 @@ export class Dropzone extends React.Component<DropzoneProps, DropzoneState> {
     constructor(props: DropzoneProps) {
         super(props)
         this.state = {
-            accept: 'application/json',
+            accept: 'application/json,',
             dropzoneActive: false
         }
     }

@@ -13,7 +13,11 @@
                 "empty": "Der Steam is leer",
                 "end": "Keine älteren Events vorhanden",
                 "title": "Streams",
-                "no_stream_selected": "Wähle einen Stream aus der Liste rechts, um Events des Streams zu sehen."
+                "filter": "Stream filtern",
+                "insert": "Events hinzufügen",
+                "refresh": "Stream neu laden",
+                "no_stream_selected": "Wähle einen Stream aus der Liste rechts, um Events des Streams zu sehen.",
+                "add_events_here": "Eine JSON kodierte Liste an events ..."
             },
             "event": {
                 "uuid": "Uuid",
@@ -47,6 +51,10 @@
                     "select_watcher": "Zu existierendem Watcher hinzufügen",
                     "desc": "Ein Watcher beobachtet seinen Stream und filtert neue Events anhand der definierten Filter."
                 }
+            },
+            "clipboard": {
+                "copy_events": "Events in die Zwischenablage kopieren",
+                "events_copied": "Events wurden in die Zwischenablage kopiert"
             }
         }
     },

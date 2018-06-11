@@ -11,9 +11,11 @@ export default function* (cmd: Command.ImportMessageFlowFile) {
     try {
         const elements = JSON.parse(fileContent);
 
+        const service = elements.project;
+
         const messageFlow: MessageFlow.MessageFlow = yield select(Cytoscape.makeGetMessageFlow() as any);
 
-        const mergedFlow = messageFlow.mergeElements(elements);
+        const mergedFlow = messageFlow.mergeElements(elements, service);
 
         yield put(Command.saveMessageFlow(mergedFlow)) as any;
     } catch(err) {

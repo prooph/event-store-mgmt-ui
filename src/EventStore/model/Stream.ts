@@ -10,28 +10,37 @@ export type StreamName = string;
 export interface StreamType {
     streamName: StreamName,
     loading?: boolean,
+    inserting?: boolean,
     events?: List<DomainEvent>,
+    failedInsertEvents?: List<DomainEvent>,
     filters?: List<StreamFilter>,
     lastErrorCode?: number | null,
     showFilterBox?: boolean,
+    showInsertBox?: boolean,
 }
 
 export class Stream extends Record({
     streamName: 'unknown',
     loading: false,
+    inserting: false,
     events: fromJS([]),
+    failedInsertEvents: fromJS([]),
     filters: fromJS([]),
     lastErrorCode: null,
     showFilterBox: false,
+    showInsertBox: false,
 }) {
     constructor(data: StreamType) {
         super(data);
 
         this.name = this.name.bind(this);
         this.isLoading = this.isLoading.bind(this);
+        this.isInserting = this.isInserting.bind(this);
         this.lastErrorCode = this.lastErrorCode.bind(this);
         this.showFilterBox = this.showFilterBox.bind(this);
-        this.events =  this.events.bind(this);
+        this.showInsertBox = this.showInsertBox.bind(this);
+        this.events = this.events.bind(this);
+        this.failedInsertEvents = this.failedInsertEvents.bind(this);
         this.clearEvents = this.clearEvents.bind(this);
         this.filters = this.filters.bind(this);
     }
@@ -44,6 +53,10 @@ export class Stream extends Record({
         return this.get('loading')
     }
 
+    isInserting(): boolean {
+        return this.get('inserting');
+    }
+
     lastErrorCode(): number | null {
         return this.get('lastErrorCode');
     }
@@ -52,8 +65,16 @@ export class Stream extends Record({
         return this.get('showFilterBox');
     }
 
+    showInsertBox(): boolean {
+        return this.get('showInsertBox');
+    }
+
     events(): List<DomainEvent> {
         return this.get('events')
+    }
+
+    failedInsertEvents(): List<DomainEvent> {
+        return this.get('failedInsertEvents')
     }
 
     clearEvents(): Stream {

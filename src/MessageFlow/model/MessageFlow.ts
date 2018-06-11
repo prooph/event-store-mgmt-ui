@@ -1,4 +1,4 @@
-import {Record, List} from 'immutable';
+import {Record, List, Map} from 'immutable';
 import {EdgeDefinition, ElementsDefinition, NodeDefinition} from "cytoscape";
 import * as _ from "lodash";
 import {Model as ESModel} from "../../EventStore/index";
@@ -26,6 +26,17 @@ export const emptyMessageFlow = (): MessageFlow => {
     }});
 }
 
+interface EnhancedNodeData {
+    parent?: string,
+    service: string
+}
+
+interface EnhancedEdgeData {
+    source: string;
+    target: string;
+    service: string
+}
+
 export class MessageFlow extends Record({
     elements: {nodes: [], edges: []},
     watching: false,
@@ -46,8 +57,8 @@ export class MessageFlow extends Record({
         return this.get("elements");
     }
 
-    mergeElements(elements: ElementsDefinition): MessageFlow {
-        return new MessageFlow({"elements": mergeElements(this.elements(), elements)});
+    mergeElements(elements: ElementsDefinition, fromService: string): MessageFlow {
+        return new MessageFlow({"elements": mergeElements(this.elements(), elements, fromService)});
     }
 
     isWatching(): boolean {
@@ -69,7 +80,7 @@ export class MessageFlow extends Record({
     }
 }
 
-export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): ElementsDefinition => {
+export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition, fromService: string): ElementsDefinition => {
     let aNodes = {};
     let bNodes = {};
     let mergedNodes = [];
@@ -77,6 +88,9 @@ export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): Ele
     a.nodes.forEach((node: NodeDefinition) => {aNodes[node.data.id] = node});
 
     b.nodes.forEach(node => {
+        let data = node.data as EnhancedNodeData;
+        data.service = fromService;
+
         if(_.isUndefined(aNodes[node.data.id])) {
             mergedNodes.push(node);
         } else {
@@ -85,7 +99,11 @@ export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): Ele
     })
 
     a.nodes.forEach((node: NodeDefinition) => {
+        const data = node.data as EnhancedNodeData;
+
         if(!_.isUndefined(bNodes[node.data.id])) {
+            mergedNodes.push(updateNonPositionNodeProps(node, bNodes[node.data.id]));
+        } else if (data.service !== fromService) {
             mergedNodes.push(node);
         }
     })
@@ -97,6 +115,9 @@ export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): Ele
     a.edges.forEach((edge: EdgeDefinition) => {aEdges[edge.data.id] = edge});
 
     b.edges.forEach(edge => {
+        let data = edge.data as EnhancedEdgeData;
+        data.service = fromService;
+
         if(_.isUndefined(aEdges[edge.data.id])) {
             mergedEdges.push(edge);
         } else {
@@ -105,10 +126,18 @@ export const mergeElements = (a: ElementsDefinition, b: ElementsDefinition): Ele
     })
 
     a.edges.forEach((edge: EdgeDefinition) => {
+        const data = edge.data as EnhancedEdgeData;
+
         if(!_.isUndefined(bEdges[edge.data.id])) {
             mergedEdges.push(edge);
+        } else if (data.service !== fromService) {
+            mergedEdges.push(edge)
         }
     })
 
     return {nodes: mergedNodes, edges: mergedEdges};
 };
+
+const updateNonPositionNodeProps = (nodeWithPosition: NodeDefinition, updatedNode: NodeDefinition): NodeDefinition => {
+    return Map(updatedNode).set('position', nodeWithPosition.position).toJS() as NodeDefinition;
+}

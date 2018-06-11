@@ -123,7 +123,7 @@ const Main = () => (
 );
 
 const Root = () => (
-    <Segment>
+    <Segment style={{height: '100%', border: 'none', boxShadow: '0px 0px'}}>
         <Layout.TopMenu />
         <Main/>
         <Notifications maxMessages={4} />
@@ -141,4 +141,5 @@ ReactDOM.render(
     document.getElementById('root'),
 );
 notify();
-registerServiceWorker();
+//@TODO: Do we need the service worker for mgmt UI?
+//registerServiceWorker();

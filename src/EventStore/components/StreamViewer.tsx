@@ -1,30 +1,42 @@
 import * as React from 'react';
 import {InjectedTranslateProps} from "react-i18next";
-import {Stream, Filter, Watcher} from "../model";
-import {Header, Card, Message, Accordion, Icon, Segment, Divider, Button} from "semantic-ui-react";
+import {Stream, Filter, Watcher, Event as ModelEvent} from "../model";
+import {Header, Card, Message, Accordion, Icon, Segment, Divider, Popup} from "semantic-ui-react";
 import Event from "./Event";
 import {StreamFilterBox} from "./StreamFilterBox";
+import {StreamInsertBox} from "./StreamInsertBox";
 import {fromJS, List} from "immutable";
+import {copyToClipboard} from "../../utils";
 
 export interface StreamViewerProps extends InjectedTranslateProps {
     stream: Stream.Stream,
     style?: any,
     existingWatchers: List<Watcher.Watcher>,
     onShowFilterBox: (streamName: Stream.StreamName, show: boolean) => void,
+    onShowInsertBox: (streamName: Stream.StreamName, show: boolean) => void,
     onRefresh: (stream: Stream.Stream) => void,
     onFilterSubmit: (streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
+    onInsertEvents: (streamName: Stream.StreamName, events: List<ModelEvent.DomainEvent>) => void,
     onChangeUnsavedFilters: (unsaved: boolean) => void,
     onAddWatcher: (watcherId: Watcher.Id, watcherName: Watcher.Name, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
     onAppendToWatcher: (watcherId: Watcher.Id, streamName: Stream.StreamName, filters: List<Filter.StreamFilter>) => void,
 }
 
-export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
+interface StreamViewerState {
+    eventsCopied: boolean
+}
+
+export class StreamViewer extends React.Component<StreamViewerProps, StreamViewerState>{
+
+    state = {eventsCopied: false}
 
     handleOnRefresh = () => this.props.onRefresh(this.props.stream)
 
     handleFilterSubmit = (filters: List<Filter.StreamFilter>) => this.props.onFilterSubmit(this.props.stream.name(), filters)
 
     handleShowFilterBoxClick = () => this.props.onShowFilterBox(this.props.stream.name(), !this.props.stream.showFilterBox())
+
+    handleShowInsertBoxClick = () => this.props.onShowInsertBox(this.props.stream.name(), !this.props.stream.showInsertBox())
 
     handleOnAddWatcher = (watcherId: Watcher.Id, watcherName: Watcher.Name) => this.props.onAddWatcher(
         watcherId,
@@ -39,6 +51,14 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
         this.props.stream.filters()
     );
 
+    handleCopyToClipboardClick = () => {
+        this.setState({eventsCopied: true})
+
+        const events = JSON.stringify(this.props.stream.events().toJS(), null, 2);
+
+        copyToClipboard(events);
+    }
+
     render() {
         let panels = [];
 
@@ -51,31 +71,62 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
                 ).toArray();
         }
 
+        const {eventsCopied} = this.state;
+
         return (
             <div style={this.props.style}>
                 <Header as="h1" textAlign="center">
                     <Header sub={true} floated={'left'}>
-                        <Icon
-                            name='filter'
-                            className='event_store'
-                            size='large'
-                            color={this.props.stream.showFilterBox() || this.props.stream.filters().count() > 0? 'orange' : null}
-                            onClick={this.handleShowFilterBoxClick} />
+                        <Popup
+                            trigger={<Icon
+                                name='filter'
+                                className='event_store'
+                                size='large'
+                                color={this.props.stream.showFilterBox() || this.props.stream.filters().count() > 0? 'orange' : null}
+                                onClick={this.handleShowFilterBoxClick} />}
+                            content={this.props.t('app.eventStore.streams.filter')}
+                            on='hover'
+                            position='bottom center'
+                        />
+                    </Header>
+                    <Header sub={true} floated={'left'}>
+                        <Popup
+                            trigger={<Icon
+                                name='plus'
+                                className='event_store'
+                                size='large'
+                                color={this.props.stream.showInsertBox()? 'orange' : null}
+                                onClick={this.handleShowInsertBoxClick} />}
+                            content={this.props.t('app.eventStore.streams.insert')}
+                            on='hover'
+                            position='bottom center'
+                        />
                     </Header>
                     { this.props.t('app.eventStore.h1') + " / " + this.props.stream.name() }
                     <Header sub={true} floated='right'>
-                        <Icon
-                            size='large'
-                            name='refresh'
-                            style={{cursor: 'pointer'}}
-                            color={this.props.stream.isLoading()? 'orange':null}
-                            loading={this.props.stream.isLoading()}
-                            onClick={this.handleOnRefresh}
-                            className='event_store'
+                        <Popup
+                            trigger={<Icon
+                                size='large'
+                                name='refresh'
+                                style={{cursor: 'pointer'}}
+                                color={this.props.stream.isLoading()? 'orange':null}
+                                loading={this.props.stream.isLoading()}
+                                onClick={this.handleOnRefresh}
+                                className='event_store'
+                            />}
+                            content={this.props.t('app.eventStore.streams.refresh')}
+                            on='hover'
+                            position='bottom center'
                         />
                     </Header>
                 </Header>
                 <Divider className='event_store' />
+                {this.props.stream.showInsertBox() && <Segment basic>
+                    <StreamInsertBox
+                        stream={this.props.stream}
+                        onInsertEvents={this.props.onInsertEvents}
+                        t={this.props.t} />
+                </Segment>}
                 {this.props.stream.showFilterBox() && <Segment basic>
                     <StreamFilterBox
                         filters={this.props.stream.filters()}
@@ -104,6 +155,22 @@ export class StreamViewer extends React.Component<StreamViewerProps, undefined>{
                         </Message.Content>
                     </Message>
                     }
+                    <Divider />
+                    <Header as='h2'>
+                        {panels.length > 0 && <Header sub={true} floated='right'>
+                            <Popup
+                                trigger={<Icon
+                                    name='clipboard'
+                                    className='event_store'
+                                    size='large'
+                                    onClick={this.handleCopyToClipboardClick} />}
+                                content={eventsCopied? this.props.t('app.eventStore.clipboard.events_copied') : this.props.t('app.eventStore.clipboard.copy_events')}
+                                on='hover'
+                                position='bottom center'
+                                onClose={() => this.setState({eventsCopied: false})}
+                            />
+                        </Header>}
+                    </Header>
                 </Card>
             </div>
         );

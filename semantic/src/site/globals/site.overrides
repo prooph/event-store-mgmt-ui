@@ -7,14 +7,18 @@ ul.ui.pagination.secondary.pointing.menu > li.active {
     border-bottom: 3px solid @primaryColor;
 }
 
-i.filter {
+i.filter, i.clipboard, i.plus {
     cursor: pointer;
 }
 
 i.filter.event_store.active,
 i.filter.event_store:hover,
 i.refresh.event_store:hover,
-i.refresh.event_store.active {
+i.refresh.event_store.active,
+i.clipboard.event_store.active,
+i.clipboard.event_store:hover,
+i.plus.event_store.active,
+i.plus.event_store:hover {
     color: @orange;
 }
 

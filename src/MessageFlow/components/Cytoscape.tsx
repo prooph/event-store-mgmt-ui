@@ -1,20 +1,33 @@
 import * as React from 'react';
 import {List, Map} from 'immutable';
 import * as cytoscape from 'cytoscape';
-import {conf} from '../conf';
+import {conf, loadFontAwesomeSvg} from '../conf';
+import {panZoomConf} from "../panzoom-conf";
 import {gridConf} from "../grid-conf"
 import {MessageFlow} from "../model";
+import {Model as ESModel} from "../../EventStore/index";
 import { Grid, Menu, Icon } from 'semantic-ui-react';
 import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
 import MenuWatchBtn from "./MenuWatchBtn";
 import ConfirmWrapper from "./ConfirmWrapper";
+import {Filter, Layout, Selection} from "../flowutils/index";
 import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} from "cytoscape";
-import * as _ from "lodash";
-import * as $ from "jquery";
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
+const cycmenu = require('cytoscape-context-menus');
+const cyEdgeBendEditing = require('cytoscape-edge-bend-editing');
+const cyPanZoom = require('cytoscape-panzoom');
 
+import 'cytoscape-context-menus/cytoscape-context-menus.css'
+import 'cytoscape-panzoom/cytoscape.js-panzoom.css'
+import 'cytoscape-panzoom/font-awesome-4.0.3/css/font-awesome.css'
+
+declare const $: any;
+
+cycmenu(cytoscape, $);
 cytour(cytoscape);
+cyEdgeBendEditing(cytoscape, $);
+cyPanZoom(cytoscape, $);
 
 let cyStyle = {
     height: '100%',
@@ -22,125 +35,74 @@ let cyStyle = {
     display: 'block'
 };
 
-let commandRow = 0;
-let commandHandlerRow = 0;
-let aggregateMethodRow = 0;
-let eventRow = 0;
-let eventListener = 0;
+const cyContextMenuConfig = (cy) => {
+    return {
+        menuItems: [
+            {
+                id: 'selectMethods',
+                content: 'Select Methods',
+                selector: 'node.parent',
+                onClickFunction: function (event) {
+                    const target = event.target || event.cyTarget;
+                    Selection.selectParentMethods(target);
+                    target.unselect();
+                }
+            },
+            {
+                id: 'selectNeighbours',
+                content: 'Select Neighbours',
+                selector: 'node',
+                onClickFunction: function (event) {
+                    const target = event.target || event.cyTarget;
+                    target.select();
 
-const nodeRowCol = (node) => {
+                    cy.$('node:selected').each(node => Selection.selectNeighbourNodes(node));
+                }
+            },
+            {
+                id: 'rearrange',
+                content: 'Rearrange',
+                selector: 'node',
+                coreAsWell: true,
+                onClickFunction: function (event) {
+                    const eles = cy.$('node:selected');
+                    Layout.prepareSortStrings(eles);
+                    const layout = eles.layout(Layout.positioningLayout(
+                        false,
+                        Layout.calculateBoundingBoxOfNodes(eles)
+                    )) as any;
+                    layout.run();
+                }
+            },
+            {
+                id: 'fit',
+                content: 'Fit Selection',
+                selector: 'node',
+                onClickFunction: function (event) {
+                    const target = event.target || event.cyTarget;
+                    target.select();
 
-    if(node.hasClass('command')) {
-        if(node.hasClass('message')) {
-            commandRow = commandRow + 1;
-            return {row: commandRow, col: 0};
-        }
-
-        if(node.hasClass('handler')) {
-            commandHandlerRow = commandHandlerRow + 1;
-            return {row: commandHandlerRow, col: 1};
-        }
-
-        if(node.hasClass('producer')) {
-            eventListener = eventListener + 1;
-            return {row: eventListener, col: 4};
-        }
-    }
-
-    if(node.hasClass('event')) {
-        if(node.hasClass('message')) {
-            eventRow = eventRow + 1;
-            return {row: eventRow, col: 3};
-        }
-
-        if(node.hasClass('recorder') || node.hasClass('factory')) {
-            aggregateMethodRow = aggregateMethodRow + 1;
-            return {row: aggregateMethodRow, col: 2};
-        }
-
-        if(node.hasClass('listner')) {
-            eventListener = eventListener + 1;
-            return {row: eventListener, col: 4};
-        }
-    }
-
-    return {};
-};
-
-const positioningLayout = {
-    name: "grid",
-    avoidOverlap: true,
-    avoidOverlapPadding: 20,
-    position: nodeRowCol,
-};
-
-const filterNodesWithoutPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
-    let filteredNodes = [];
-    nodes.forEach(node => {
-        if(_.isUndefined(node.position)) {
-            filteredNodes.push(node);
-        }
-    })
-
-    return filteredNodes;
-}
-
-const filterNodesWithPosition = (nodes: NodeDefinition[]): NodeDefinition[] => {
-    let filteredNodes = [];
-    nodes.forEach(node => {
-        if(!_.isUndefined(node.position)) {
-            filteredNodes.push(node);
-        }
-    })
-
-    return filteredNodes;
-}
-
-const findPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
-    let matchedEdges = [];
-    messageFlow.elements().edges.forEach((edge: EdgeDefinition) => {
-        if(edge.data.target === node.data.id) {
-            matchedEdges.push(edge)
-        }
-    });
-
-    if(matchedEdges.length === 0) {
-        return null;
-    }
-
-    let matchedNodes = [];
-
-    matchedEdges.forEach(edge => {
-        messageFlow.elements().nodes.forEach(node => {
-            if(edge.data.source === node.data.id) {
-                matchedNodes.push(node);
+                    cy.animate({
+                        fit: {
+                            eles: 'node:selected',
+                            padding: 50
+                        }
+                    }, {
+                        duration: 500
+                    })
+                }
             }
-        })
-    })
-
-    return matchedNodes;
-}
-
-const followPrevNeighbours = (node: NodeDefinition, messageFlow: MessageFlow.MessageFlow): NodeDefinition[] | null => {
-    let prevNeighbours = findPrevNeighbours(node, messageFlow);
-
-    if(null === prevNeighbours) {
-        return null;
+        ]
     }
-
-    prevNeighbours.forEach(prevNode => {
-        const nextPrevNeighbours = followPrevNeighbours(prevNode, messageFlow);
-
-        if(null !== nextPrevNeighbours) {
-            nextPrevNeighbours.forEach(prevNode => prevNeighbours.push(prevNode))
-        }
-    })
-
-    return prevNeighbours;
 }
 
+//Watch Mode
 const removeInactiveStatus = (node: Map<string, any>): Map<string, any> => {
     return node.set('classes', node.get('classes').replace(' inactive', ''))
+}
+
+const isEventNode = (nodeMap: Map<string, any>, event: ESModel.Event.DomainEvent): boolean => {
+    return event.messageName() === nodeMap.getIn(['data', 'class']) || event.messageName() === nodeMap.getIn(['data', 'name'])
 }
 
 const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.MessageFlow): NodeDefinition[] => {
@@ -155,10 +117,10 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
         let nodeMap = Map<string, any>(node).set("data", Map<string, any>(node.data));
 
         if(messageFlow.recordedEvents().filter(
-            event => event.messageName() === nodeMap.getIn(['data', 'class']) || event.messageName() === nodeMap.getIn(['data', 'name'])
+            event => isEventNode(nodeMap, event)
         ).count() > 0) {
             nodeMap = removeInactiveStatus(nodeMap);
-            let prevNeighbours = followPrevNeighbours(nodeMap.toJS(), messageFlow);
+            let prevNeighbours = Filter.followPrevNeighbours(nodeMap.toJS(), messageFlow);
             prevNeighbours.forEach(prevNeighbour => allPrevNeighbours.push(prevNeighbour))
         }
 
@@ -173,6 +135,36 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
     return modifiedNodes.toList().toJS();
 }
 
+const getNodesEffectedByLastEvent = (nodes: NodeDefinition[], messageFlow: MessageFlow.MessageFlow): NodeDefinition[] => {
+    if(!messageFlow.isWatching()) {
+        return [];
+    }
+
+    if(!messageFlow.recordedEvents().last()) {
+        return [];
+    }
+
+    const lastEvent = messageFlow.recordedEvents().last();
+
+    let effectedNodes = [];
+
+    nodes.forEach(node => {
+
+        const nodeData = node.data as any;
+
+        let nodeMap = Map<string, any>(node).set("data", Map<string, any>(node.data));
+        if(isEventNode(nodeMap, lastEvent)) {
+            effectedNodes.push(node);
+            let prevNeighbours = Filter.followPrevNeighbours(nodeMap.toJS(), messageFlow);
+            prevNeighbours.forEach(prevNeighbour => effectedNodes.push(prevNeighbour))
+
+            return false;
+        }
+    });
+
+    return effectedNodes;
+}
+
 export interface CytoscapeProps {
     messageFlow: MessageFlow.MessageFlow,
     onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void,
@@ -182,10 +174,13 @@ export interface CytoscapeProps {
     onStopWatchSession: () => void,
 }
 
-class Cytoscape extends React.Component<CytoscapeProps, undefined>{
+class Cytoscape extends React.Component<CytoscapeProps, {height: string}>{
     private cy: cytoscape.Core;
     private cyelement: HTMLDivElement;
     private cytour: any;
+    private cyContextMenu: any;
+    private cyEdgeBendEditing: any;
+    private cyPanZoom: any;
     private dropzone: Dropzone;
     private saveBtn: React.Component;
     private watchBtn: React.Component;
@@ -193,6 +188,7 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
 
     constructor(props: CytoscapeProps) {
         super(props);
+        this.state = {height: '100%'};
         this.handleSaveMsgFlow = this.handleSaveMsgFlow.bind(this);
         this.handleUndoClick = this.handleUndoClick.bind(this);
         this.handleRedoClick = this.handleRedoClick.bind(this);
@@ -203,6 +199,11 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.handleCytoscapeChange = this.handleCytoscapeChange.bind(this);
         this.handleConfirmedDelete = this.handleConfirmedDelete.bind(this);
         this.handleCanceledDelete = this.handleCanceledDelete.bind(this);
+        this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+    }
+
+    updateWindowDimensions() {
+        this.setState({ height: window.innerHeight + 'px' });
     }
 
     handleSaveMsgFlow() {
@@ -311,21 +312,40 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
     componentDidMount(){
         conf.container = this.cyelement;
 
+        const svgReady = loadFontAwesomeSvg();
+
+        const {messageFlow} = this.props;
+
         let cy = cytoscape(conf) as any;
 
         this.cytour = cy.undoRedo();
+        this.cyContextMenu = cy.contextMenus(cyContextMenuConfig(cy));
+        this.cyEdgeBendEditing = cy.edgeBendEditing({undoable: true, bendShapeSizeFactor: 10});
+        this.cyPanZoom = cy.panzoom(panZoomConf);
 
         cy["gridGuide"](gridConf);
 
         cy.on("tapstart", "node", this.handleCytoscapeChange);
+        cy.on("tapstart", "edge", this.handleCytoscapeChange);
 
         this.cy = cy;
-        cy.add(this.props.messageFlow.elements().nodes);
-        cy.add(this.props.messageFlow.elements().edges);
 
-        cy.fit();
+        svgReady.then(function () {
+            cy.remove('*');
+
+            const nodes = applyWatchSession(
+                messageFlow.elements().nodes,
+                messageFlow
+            );
+            cy.add(nodes);
+            cy.add(messageFlow.elements().edges);
+            cy.fit();
+        })
 
         this.watchBtn.setState({"watching": this.props.messageFlow.isWatching()})
+
+        this.updateWindowDimensions();
+        window.addEventListener('resize', this.updateWindowDimensions);
     }
 
     shouldComponentUpdate(){
@@ -336,35 +356,48 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.cy.remove('*');
 
         const nodesWithPosition = applyWatchSession(
-            filterNodesWithPosition(nextProps.messageFlow.elements().nodes),
+            Filter.filterNodesWithPosition(nextProps.messageFlow.elements().nodes),
             nextProps.messageFlow
         );
 
-        const nodesWithoutPosition = filterNodesWithoutPosition(nextProps.messageFlow.elements().nodes);
+        const nodesWithoutPosition = Filter.filterNodesWithoutPosition(nextProps.messageFlow.elements().nodes);
 
         this.cy.add(nodesWithPosition);
 
         const eles: CollectionElements = this.cy.add(nodesWithoutPosition);
 
-        //Reset global vars
-        commandRow = 0;
-        commandHandlerRow = 0;
-        aggregateMethodRow = 0;
-        eventRow = 0;
-        eventListener = 0;
+        this.cy.add(nextProps.messageFlow.elements().edges);
 
-        const layout = eles.layout(positioningLayout) as any;
+        Layout.prepareSortStrings(eles);
+
+        const layout = eles.layout(Layout.positioningLayout()) as any;
         layout.run();
 
-        this.cy.add(nextProps.messageFlow.elements().edges);
+        if(nextProps.messageFlow.isWatching()) {
+            const effectedNodes = getNodesEffectedByLastEvent(nextProps.messageFlow.elements().nodes, nextProps.messageFlow);
+
+            let ids = [];
+
+            effectedNodes.forEach(node => ids.push(node.data.id))
+
+            this.cy.animate({
+                fit: {
+                    eles: '#' + ids.join(', #'),
+                    padding: 200,
+                },
+            } as any, {
+                duration: 1000
+            } as any);
+        }
     }
 
     componentWillUnmount(){
         this.cy.destroy();
+        window.removeEventListener('resize', this.updateWindowDimensions);
     }
 
     render(){
-        return <Grid.Row style={{minHeight: '100%'}}>
+        return <Grid.Row style={this.state}>
             <Grid.Column width={14}>
                 <Dropzone
                     onDroppedFile={this.handleDroppedFile}

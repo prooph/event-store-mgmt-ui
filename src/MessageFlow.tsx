@@ -11,7 +11,7 @@ interface MessageFlowProps extends RouteComponentProps<{ id: string }>, Injected
 class MessageFlow extends React.Component<MessageFlowProps, undefined>{
 
     render(){
-        return <Grid centered={false} style={{height: '1200px'}}>
+        return <Grid centered={false} style={{height: '100%'}}>
             <Cytoscape />
         </Grid>;
     }
