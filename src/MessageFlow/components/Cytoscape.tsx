@@ -2,8 +2,10 @@ import * as React from 'react';
 import {List, Map} from 'immutable';
 import * as cytoscape from 'cytoscape';
 import {conf, loadFontAwesomeSvg} from '../conf';
+import {panZoomConf} from "../panzoom-conf";
 import {gridConf} from "../grid-conf"
 import {MessageFlow} from "../model";
+import {Model as ESModel} from "../../EventStore/index";
 import { Grid, Menu, Icon } from 'semantic-ui-react';
 import {Dropzone} from './Dropzone';
 import MenuSaveBtn from "./MenuSaveBtn";
@@ -14,14 +16,18 @@ import {CollectionElements, ElementsDefinition, NodeDefinition, EdgeDefinition} 
 const cytour = require('cytoscape-undo-redo/cytoscape-undo-redo.js');
 const cycmenu = require('cytoscape-context-menus');
 const cyEdgeBendEditing = require('cytoscape-edge-bend-editing');
+const cyPanZoom = require('cytoscape-panzoom');
 
 import 'cytoscape-context-menus/cytoscape-context-menus.css'
+import 'cytoscape-panzoom/cytoscape.js-panzoom.css'
+import 'cytoscape-panzoom/font-awesome-4.0.3/css/font-awesome.css'
 
 declare const $: any;
 
 cycmenu(cytoscape, $);
 cytour(cytoscape);
 cyEdgeBendEditing(cytoscape, $);
+cyPanZoom(cytoscape, $);
 
 let cyStyle = {
     height: '100%',
@@ -67,6 +73,24 @@ const cyContextMenuConfig = (cy) => {
                     )) as any;
                     layout.run();
                 }
+            },
+            {
+                id: 'fit',
+                content: 'Fit Selection',
+                selector: 'node',
+                onClickFunction: function (event) {
+                    const target = event.target || event.cyTarget;
+                    target.select();
+
+                    cy.animate({
+                        fit: {
+                            eles: 'node:selected',
+                            padding: 50
+                        }
+                    }, {
+                        duration: 500
+                    })
+                }
             }
         ]
     }
@@ -75,6 +99,10 @@ const cyContextMenuConfig = (cy) => {
 //Watch Mode
 const removeInactiveStatus = (node: Map<string, any>): Map<string, any> => {
     return node.set('classes', node.get('classes').replace(' inactive', ''))
+}
+
+const isEventNode = (nodeMap: Map<string, any>, event: ESModel.Event.DomainEvent): boolean => {
+    return event.messageName() === nodeMap.getIn(['data', 'class']) || event.messageName() === nodeMap.getIn(['data', 'name'])
 }
 
 const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.MessageFlow): NodeDefinition[] => {
@@ -89,7 +117,7 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
         let nodeMap = Map<string, any>(node).set("data", Map<string, any>(node.data));
 
         if(messageFlow.recordedEvents().filter(
-            event => event.messageName() === nodeMap.getIn(['data', 'class']) || event.messageName() === nodeMap.getIn(['data', 'name'])
+            event => isEventNode(nodeMap, event)
         ).count() > 0) {
             nodeMap = removeInactiveStatus(nodeMap);
             let prevNeighbours = Filter.followPrevNeighbours(nodeMap.toJS(), messageFlow);
@@ -107,6 +135,36 @@ const applyWatchSession = (nodes: NodeDefinition[], messageFlow: MessageFlow.Mes
     return modifiedNodes.toList().toJS();
 }
 
+const getNodesEffectedByLastEvent = (nodes: NodeDefinition[], messageFlow: MessageFlow.MessageFlow): NodeDefinition[] => {
+    if(!messageFlow.isWatching()) {
+        return [];
+    }
+
+    if(!messageFlow.recordedEvents().last()) {
+        return [];
+    }
+
+    const lastEvent = messageFlow.recordedEvents().last();
+
+    let effectedNodes = [];
+
+    nodes.forEach(node => {
+
+        const nodeData = node.data as any;
+
+        let nodeMap = Map<string, any>(node).set("data", Map<string, any>(node.data));
+        if(isEventNode(nodeMap, lastEvent)) {
+            effectedNodes.push(node);
+            let prevNeighbours = Filter.followPrevNeighbours(nodeMap.toJS(), messageFlow);
+            prevNeighbours.forEach(prevNeighbour => effectedNodes.push(prevNeighbour))
+
+            return false;
+        }
+    });
+
+    return effectedNodes;
+}
+
 export interface CytoscapeProps {
     messageFlow: MessageFlow.MessageFlow,
     onSaveMessageFlow: (messageFlow: MessageFlow.MessageFlow) => void,
@@ -116,12 +174,13 @@ export interface CytoscapeProps {
     onStopWatchSession: () => void,
 }
 
-class Cytoscape extends React.Component<CytoscapeProps, undefined>{
+class Cytoscape extends React.Component<CytoscapeProps, {height: string}>{
     private cy: cytoscape.Core;
     private cyelement: HTMLDivElement;
     private cytour: any;
     private cyContextMenu: any;
     private cyEdgeBendEditing: any;
+    private cyPanZoom: any;
     private dropzone: Dropzone;
     private saveBtn: React.Component;
     private watchBtn: React.Component;
@@ -129,6 +188,7 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
 
     constructor(props: CytoscapeProps) {
         super(props);
+        this.state = {height: '100%'};
         this.handleSaveMsgFlow = this.handleSaveMsgFlow.bind(this);
         this.handleUndoClick = this.handleUndoClick.bind(this);
         this.handleRedoClick = this.handleRedoClick.bind(this);
@@ -139,6 +199,11 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.handleCytoscapeChange = this.handleCytoscapeChange.bind(this);
         this.handleConfirmedDelete = this.handleConfirmedDelete.bind(this);
         this.handleCanceledDelete = this.handleCanceledDelete.bind(this);
+        this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+    }
+
+    updateWindowDimensions() {
+        this.setState({ height: window.innerHeight + 'px' });
     }
 
     handleSaveMsgFlow() {
@@ -256,6 +321,7 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         this.cytour = cy.undoRedo();
         this.cyContextMenu = cy.contextMenus(cyContextMenuConfig(cy));
         this.cyEdgeBendEditing = cy.edgeBendEditing({undoable: true, bendShapeSizeFactor: 10});
+        this.cyPanZoom = cy.panzoom(panZoomConf);
 
         cy["gridGuide"](gridConf);
 
@@ -277,6 +343,9 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         })
 
         this.watchBtn.setState({"watching": this.props.messageFlow.isWatching()})
+
+        this.updateWindowDimensions();
+        window.addEventListener('resize', this.updateWindowDimensions);
     }
 
     shouldComponentUpdate(){
@@ -304,15 +373,31 @@ class Cytoscape extends React.Component<CytoscapeProps, undefined>{
         const layout = eles.layout(Layout.positioningLayout()) as any;
         layout.run();
 
+        if(nextProps.messageFlow.isWatching()) {
+            const effectedNodes = getNodesEffectedByLastEvent(nextProps.messageFlow.elements().nodes, nextProps.messageFlow);
 
+            let ids = [];
+
+            effectedNodes.forEach(node => ids.push(node.data.id))
+
+            this.cy.animate({
+                fit: {
+                    eles: '#' + ids.join(', #'),
+                    padding: 200,
+                },
+            } as any, {
+                duration: 1000
+            } as any);
+        }
     }
 
     componentWillUnmount(){
         this.cy.destroy();
+        window.removeEventListener('resize', this.updateWindowDimensions);
     }
 
     render(){
-        return <Grid.Row style={{minHeight: '100%'}}>
+        return <Grid.Row style={this.state}>
             <Grid.Column width={14}>
                 <Dropzone
                     onDroppedFile={this.handleDroppedFile}

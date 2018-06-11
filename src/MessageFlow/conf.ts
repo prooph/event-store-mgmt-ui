@@ -106,7 +106,7 @@ function renderNodeBg (ele) {
     }
 
     const svg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg>
-<svg xmlns="http://www.w3.org/2000/svg" width="75" height="50" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="100" viewBox="0 0 512 512">
     <path fill="${color}" d="${faIconPath(icon)}"></path>
 </svg>`;
 
@@ -140,10 +140,11 @@ export const conf: any = {
                 'content': 'data(name)',
                 'background-image': ele => renderNodeBg(ele).url,
                 'background-color': ele => renderNodeBgColor(ele).color,
-                'width': 75,
-                'height': 75,
+                'width': 150,
+                'height': 150,
                 'text-valign': 'bottom',
                 'font-size': '42px',
+                'font-family': 'roboto',
                 'text-background-color': ele => renderNodeBgColor(ele).color,
                 'text-background-opacity': 1
             },
