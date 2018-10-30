@@ -1,5 +1,6 @@
 import {NodeCollection, CollectionElements} from "cytoscape";
 import {NodeType} from "../model";
+import {fromJS, List} from "immutable";
 
 export const selectParentMethods = (parent) => {
     parent.children().forEach(method => method.select());
@@ -34,5 +35,15 @@ export const selectAggregates = (nodes: NodeCollection): void => {
         if(parent.isParent() && NodeType.isAggregate(parent.data())) {
             parent.select();
         }
+    })
+}
+
+export const initEdgePoints = (nodes: NodeCollection): void => {
+    nodes.each(node => {
+        const edges = node.connectedEdges();
+        edges.forEach((edge: any) => {
+            const points = edge.segmentPoints() || [];
+            edge.data('bendPointPositions', points)
+        })
     })
 }

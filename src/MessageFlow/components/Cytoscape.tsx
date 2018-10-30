@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {List, Map} from 'immutable';
+import {fromJS, List, Map} from 'immutable';
 import * as cytoscape from 'cytoscape';
 import {conf, loadFontAwesomeSvg} from '../conf';
 import {panZoomConf} from "../panzoom-conf";
@@ -57,6 +57,36 @@ const cyContextMenuConfig = (cy) => {
                     target.select();
 
                     cy.$('node:selected').each(node => Selection.selectNeighbourNodes(node));
+                }
+            },
+            {
+                id: 'showSelectionOnly',
+                content: 'Show only selected',
+                selector: 'node',
+                coreAsWell: true,
+                onClickFunction: function (event) {
+                    cy.$('node').not(':selected').each(node => {
+                        node.hide();
+                        node.connectedEdges().each(edge => edge.hide())
+                    });
+
+                    const instance = cy.contextMenus('get');
+                    instance.hideMenuItem('showSelectionOnly')
+                    instance.showMenuItem('showAll')
+                }
+            },
+            {
+                id: 'showAll',
+                content: 'Show all',
+                selector: 'node',
+                show: false,
+                coreAsWell: true,
+                onClickFunction: function (event) {
+                    cy.$(':hidden').show();
+
+                    const instance = cy.contextMenus('get');
+                    instance.hideMenuItem('showAll')
+                    instance.showMenuItem('showSelectionOnly')
                 }
             },
             {
@@ -197,6 +227,8 @@ class Cytoscape extends React.Component<CytoscapeProps, {height: string}>{
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleDownloadClick = this.handleDownloadClick.bind(this);
         this.handleCytoscapeChange = this.handleCytoscapeChange.bind(this);
+        this.handleCytoscapeDragStart = this.handleCytoscapeDragStart.bind(this);
+        this.handleCytoscapeNodeDrag = this.handleCytoscapeNodeDrag.bind(this);
         this.handleConfirmedDelete = this.handleConfirmedDelete.bind(this);
         this.handleCanceledDelete = this.handleCanceledDelete.bind(this);
         this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
@@ -240,6 +272,20 @@ class Cytoscape extends React.Component<CytoscapeProps, {height: string}>{
 
     handleDroppedFile(file: File): void {
         this.props.onImportMessageFlowFile(file);
+    }
+
+    handleCytoscapeDragStart(event): void {
+        const target = event.target || event.cyTarget;
+        Selection.initEdgePoints(target);
+    }
+
+    handleCytoscapeNodeDrag(event): void {
+        const target = event.target || event.cyTarget;
+
+        target.each(node => {
+            const edges = node.connectedEdges();
+            this.cyEdgeBendEditing.initBendPoints(edges);
+        })
     }
 
     handleCytoscapeChange(): void {
@@ -326,7 +372,9 @@ class Cytoscape extends React.Component<CytoscapeProps, {height: string}>{
         cy["gridGuide"](gridConf);
 
         cy.on("tapstart", "node", this.handleCytoscapeChange);
+        cy.on("tapstart", "node", this.handleCytoscapeDragStart);
         cy.on("tapstart", "edge", this.handleCytoscapeChange);
+        cy.on("drag", "node", this.handleCytoscapeNodeDrag);
 
         this.cy = cy;
 
