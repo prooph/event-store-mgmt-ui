@@ -106,13 +106,22 @@ const cyContextMenuConfig = (cy) => {
                 selector: 'node',
                 coreAsWell: true,
                 onClickFunction: function (event) {
+                    const edgeBendEditing = cy.edgeBendEditing('get');
                     const eles = cy.$('node:selected');
+
+                    Selection.initEdgePoints(eles);
+
                     Layout.prepareSortStrings(eles);
                     const layout = eles.layout(Layout.positioningLayout(
                         false,
                         Layout.calculateBoundingBoxOfNodes(eles)
                     )) as any;
                     layout.run();
+
+                    eles.each(node => {
+                        const edges = node.connectedEdges();
+                        edgeBendEditing.initBendPoints(edges);
+                    })
                 }
             },
             {
