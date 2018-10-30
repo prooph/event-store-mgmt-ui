@@ -36,6 +36,8 @@ let cyStyle = {
 };
 
 const cyContextMenuConfig = (cy) => {
+    let onlySelectionVisible = false;
+
     return {
         menuItems: [
             {
@@ -57,6 +59,13 @@ const cyContextMenuConfig = (cy) => {
                     target.select();
 
                     cy.$('node:selected').each(node => Selection.selectNeighbourNodes(node));
+
+                    if(onlySelectionVisible) {
+                        cy.$('node:selected').each(node => {
+                            node.show()
+                            node.connectedEdges().each(edge => edge.show())
+                        })
+                    }
                 }
             },
             {
@@ -73,6 +82,7 @@ const cyContextMenuConfig = (cy) => {
                     const instance = cy.contextMenus('get');
                     instance.hideMenuItem('showSelectionOnly')
                     instance.showMenuItem('showAll')
+                    onlySelectionVisible = true;
                 }
             },
             {
@@ -87,6 +97,7 @@ const cyContextMenuConfig = (cy) => {
                     const instance = cy.contextMenus('get');
                     instance.hideMenuItem('showAll')
                     instance.showMenuItem('showSelectionOnly')
+                    onlySelectionVisible = false;
                 }
             },
             {
